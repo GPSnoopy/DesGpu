@@ -1,7 +1,11 @@
 
-set(exe_name SaltGenerator)
+set(exe_name Constants)
 
 set(src_files
+	key_map.cpp
+	key_map.hpp
+	salt_indices.hpp
+	salt_indices.cpp
 	main.cpp
 )
 

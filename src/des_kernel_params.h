@@ -1,6 +1,7 @@
 //#include "opencl_DES_hst_dev_shared.h"
 //#include "opencl_device_info.h"
 #include "des_kernel_types.h"
+#include "des_kernel_key_map.h"
 #include "des_kernel_sboxes.h"
 
 
