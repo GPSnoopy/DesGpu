@@ -37,5 +37,6 @@ if (UNIX)
 endif ()
 
 set(MAIN_PROJECT "DesGpu")
+add_subdirectory(salt)
 add_subdirectory(src)
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT ${MAIN_PROJECT})

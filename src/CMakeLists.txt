@@ -2,7 +2,10 @@
 set(exe_name ${MAIN_PROJECT})
 
 set(src_files_cuda
-	des.cu
+	des_kernel_params.h
+	des_kernel_sboxes.h
+	des_kernel_types.h
+	des_kernel.cu
 )
 
 set(src_files

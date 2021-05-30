@@ -3,14 +3,10 @@
 #include <exception>
 #include <iostream>
 
-void cuda_function(int a, int b);
-
 int main(int argc, char* argv[])
 {
 	try
-	{
-		cuda_function(2, 2);
-		
+	{	
 		return EXIT_SUCCESS;
 	}
 
