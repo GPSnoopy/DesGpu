@@ -138,8 +138,8 @@ inline __device__ void DES_bs_25(
 	/*__device__*/ DES_bs_vector *des_bs_key,
 	/*__device__*/ vtype *unchecked_hashes)
 {
-	int section = blockIdx.x * blockDim.x + threadIdx.x; // get_global_id(0);
-	int gws = get_global_size(0);
+	const int section = blockIdx.x * blockDim.x + threadIdx.x; // get_global_id(0);
+	const int gws = gridDim.x * blockDim.x;//get_global_size(0);
 
 	vtype B[64];
 
@@ -156,7 +156,7 @@ inline __device__ void DES_bs_25(
 	barrier(CLK_LOCAL_MEM_FENCE);
 #endif
 	{
-		vtype zero = 0;
+		const vtype zero = 0;
 		DES_bs_clear_block
 	}
 
@@ -176,8 +176,7 @@ inline __device__ void DES_bs_25(
 		unchecked_hashes[i * gws + section] = B[i];
 
 #else
-	int rounds_and_swapped;
-	rounds_and_swapped = 8;
+	int rounds_and_swapped = 8;
 	iterations = 25;
 	k = 0;
 
