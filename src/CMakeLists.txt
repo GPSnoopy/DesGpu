@@ -9,15 +9,28 @@ set(src_files_cuda
 	des_kernel.cu
 )
 
+set(src_files_test
+	../test/assert_equal.cpp
+	../test/assert_equal.hpp
+	../test/test_keys_buffer.cpp
+	../test/test_keys_buffer.hpp
+)
+
 set(src_files
+	des_bitslice.cpp
+	des_bitslice.hpp
+	keys_buffer.cpp
+	keys_buffer.hpp
 	main.cpp
 )
 
 source_group("Kernels" FILES ${src_files_cuda})
+source_group("Tests" FILES ${src_files_test})
 source_group("Main" FILES ${src_files})
 
 add_executable(${exe_name} 
 	${src_files_cuda} 
+	${src_files_test}
 	${src_files}
 )
 

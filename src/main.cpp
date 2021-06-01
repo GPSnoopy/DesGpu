@@ -3,10 +3,19 @@
 #include <exception>
 #include <iostream>
 
+#include "../test/test_keys_buffer.hpp"
+
+void run_tests()
+{
+	test_keys_buffer();
+}
+
 int main(int argc, char* argv[])
 {
 	try
-	{	
+	{
+		run_tests();
+		
 		return EXIT_SUCCESS;
 	}
 
@@ -22,3 +31,4 @@ int main(int argc, char* argv[])
 
 	return EXIT_FAILURE;
 }
+

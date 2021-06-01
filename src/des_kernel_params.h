@@ -38,7 +38,7 @@
 
 
 #define vst_private(dst, ofs, src) 			\
-	*((vtype *)((DES_bs_vector *)&(dst) + (ofs))) = (src)
+	*((vtype *)((bs_vector *)&(dst) + (ofs))) = (src)
 
 #define DES_bs_clear_block_8(j) 			\
 	vst_private(B[j] , 0, zero); 			\
