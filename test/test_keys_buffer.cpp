@@ -8,7 +8,7 @@ void test_keys_buffer_views()
 	// Test how keys are mapped into the actual data transferred to the GPU.
 	
 	auto buffers = keys_buffer(2, 0);
-	const auto& transfers = buffers.keys_transfers[0].xkeys.v;
+	const auto& transfers = buffers.keys_transfers()[0].v;
 
 	buffers.set_key("\x01\x02\x03\x04\x05\x06\x07\x08", 0);
 	buffers.set_key("\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10", 1);
@@ -124,7 +124,7 @@ void test_keys_buffer_null_values()
 	// Test how keys with less than 8 characters are mapped.
 	
 	auto buffers = keys_buffer(2, 0);
-	const auto& transfers = buffers.keys_transfers[0].xkeys.v;
+	const auto& transfers = buffers.keys_transfers()[0].v;
 
 	buffers.set_key("\x00", 0);
 	buffers.set_key("\x09\x00", 1);
