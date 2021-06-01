@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 
 	catch (const std::exception& error)
 	{
-		std::cerr << "ERROR: " << error.what() << std::endl;
+		std::cerr << "ERROR: " << typeid(error).name() << ": " << error.what() << std::endl;
 	}
 
 	catch (...)

@@ -2,22 +2,24 @@
 #include <stdexcept>
 #include <sstream>
 
-class assert_exception : public std::runtime_error
+namespace assert {
+	
+class exception : public std::runtime_error
 {
 public:
-	explicit assert_exception(const std::string& message)
+	explicit exception(const std::string& message)
 		: runtime_error(message)
 	{
 	}
 };
 
-class assert_equality_exception final : public assert_exception
+class equality_exception final : public exception
 {
 public:
 
 	template <class T>
-	assert_equality_exception(const T& expected, const T& value)
-		: assert_exception(get_message(expected, value))
+	equality_exception(const T& expected, const T& value)
+		: exception(get_message(expected, value))
 	{
 	}
 
@@ -32,10 +34,12 @@ private:
 	}
 };
 
-void assert_are_equal(const uint32_t expected, const uint32_t value)
+void are_equal(const uint32_t expected, const uint32_t value)
 {
 	if (expected != value)
 	{
-		throw assert_equality_exception(expected, value);
+		throw equality_exception(expected, value);
 	}
+}
+
 }
