@@ -25,8 +25,8 @@
 #include "des_kernel_types.h"
 
 __device__ __forceinline__ void
-s1(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s1(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(xAA55AA5500550055, a1, a4, a6, 0xC1);
 	LUT(xA55AA55AF0F5F0F5, a3, a6, xAA55AA5500550055, 0x9E);
@@ -61,8 +61,8 @@ s1(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 }
 
 __device__ __forceinline__ void
-s2(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s2(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(xEEEEEEEE99999999, a1, a2, a6, 0x97);
 	LUT(xFFFFEEEE66666666, a5, a6, xEEEEEEEE99999999, 0x67);
@@ -96,8 +96,8 @@ s2(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 }
 
 __device__ __forceinline__ void
-s3(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s3(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(xA50FA50FA50FA50F, a1, a3, a4, 0xC9);
 	LUT(xF0F00F0FF0F0F0F0, a3, a5, a6, 0x4B);
@@ -133,8 +133,8 @@ s3(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 
 /* Roman Rusakov’s s4 */
 __device__ __forceinline__ void
-s4(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s4(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(x55AAFF00, a1, a4, a5, 0x36);
 	LUT(x00F00F00, a3, a4, a5, 0x24);
@@ -154,9 +154,9 @@ s4(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 	out[c3] ^= x3;
 	out[c4] ^= x4;
 
-	vtype x26DA5E91 = x4CA36B59 ^ x6A7935C8;
+	const vtype x26DA5E91 = x4CA36B59 ^ x6A7935C8;
 	LUT(x37217F22, a2, a4, x26DA5E91, 0x72);
-	vtype x56E9861E = x37217F22 ^ x61C8F93C;
+	const vtype x56E9861E = x37217F22 ^ x61C8F93C;
 
 	LUT(x1, a6, x56E9861E, x6A7935C8, 0x5C);
 	LUT(x2, a6, x56E9861E, x6A7935C8, 0x35);
@@ -165,8 +165,8 @@ s4(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 }
 
 __device__ __forceinline__ void
-s5(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s5(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(xA0A0A0A0FFFFFFFF, a1, a3, a6, 0xAB);
 	LUT(xFFFF00005555FFFF, a1, a5, a6, 0xB9);
@@ -201,8 +201,8 @@ s5(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 }
 
 __device__ __forceinline__ void
-s6(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s6(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(x5050F5F55050F5F5, a1, a3, a5, 0xB2);
 	LUT(x6363C6C66363C6C6, a1, a2, x5050F5F55050F5F5, 0x66);
@@ -236,8 +236,8 @@ s6(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 }
 
 __device__ __forceinline__ void
-s7(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s7(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(x88AA88AA88AA88AA, a1, a2, a4, 0x0B);
 	LUT(xAAAAFF00AAAAFF00, a1, a4, a5, 0x27);
@@ -271,8 +271,8 @@ s7(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
 }
 
 __device__ __forceinline__ void
-s8(vtype a1, vtype a2, vtype a3, vtype a4, vtype a5, vtype a6,
-	vtype* out, vtype c1, vtype c2, vtype c3, vtype c4)
+s8(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,
+	vtype* const out, const vtype c1, const vtype c2, const vtype c3, const vtype c4)
 {
 	LUT(xEEEE3333EEEE3333, a1, a2, a5, 0x9D);
 	LUT(xBBBBBBBBBBBBBBBB, a1, a1, a2, 0x83);
