@@ -1,30 +1,12 @@
-//#include "opencl_DES_hst_dev_shared.h"
-//#include "opencl_device_info.h"
-#include "des_kernel_types.h"
+
+#include "types.hpp"
 #include "des_kernel_key_map.h"
 #include "des_kernel_sboxes.h"
 
 
 #define _NV
 
-#define vxorf(a, b) 					\
-	((a) ^ (b))
-#define vnot(dst, a) 					\
-	(dst) = ~(a)
-#define vand(dst, a, b) 				\
-	(dst) = (a) & (b)
-#define vor(dst, a, b) 					\
-	(dst) = (a) | (b)
-#define vandn(dst, a, b) 				\
-	(dst) = (a) & ~(b)
-#define vxor(dst, a, b) 				\
-	(dst) = vxorf((a), (b))
-#define vshl(dst, src, shift) 			\
-	(dst) = (src) << (shift)
-#define vshr(dst, src, shift) 			\
-	(dst) = (src) >> (shift)
-#define vshl1(dst, src) 				\
-	vshl((dst), (src), 1)
+
 
 //#if HAVE_LUT3
 #define vsel(dst, a, b, c)	(dst) = lut3(a, b, c, 0xd8)
@@ -37,28 +19,9 @@
 //#endif
 
 
-#define vst_private(dst, ofs, src) 			\
-	*((vtype *)((bs_vector *)&(dst) + (ofs))) = (src)
 
-#define DES_bs_clear_block_8(j) 			\
-	vst_private(B[j] , 0, zero); 			\
-	vst_private(B[j] , 1, zero); 			\
-	vst_private(B[j] , 2, zero); 			\
-	vst_private(B[j] , 3, zero); 			\
-	vst_private(B[j] , 4, zero); 			\
-	vst_private(B[j] , 5, zero); 			\
-	vst_private(B[j] , 6, zero); 			\
-	vst_private(B[j] , 7, zero);
 
-#define DES_bs_clear_block 				\
-	DES_bs_clear_block_8(0); 			\
-	DES_bs_clear_block_8(8); 			\
-	DES_bs_clear_block_8(16); 			\
-	DES_bs_clear_block_8(24); 			\
-	DES_bs_clear_block_8(32); 			\
-	DES_bs_clear_block_8(40); 			\
-	DES_bs_clear_block_8(48); 			\
-	DES_bs_clear_block_8(56);
+
 
 /*
 inline void cmp(unsigned DES_bs_vector *B,

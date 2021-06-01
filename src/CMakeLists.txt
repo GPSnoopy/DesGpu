@@ -5,8 +5,9 @@ set(src_files_cuda
 	des_kernel_key_map.h
 	des_kernel_params.h
 	des_kernel_sboxes.h
-	des_kernel_types.h
 	des_kernel.cu
+	keys_kernel.cu
+	logical_ops.h
 )
 
 set(src_files_test
@@ -21,6 +22,7 @@ set(src_files
 	des_bitslice.hpp
 	keys_buffer.cpp
 	keys_buffer.hpp
+	types.hpp
 	main.cpp
 )
 

@@ -22,7 +22,9 @@
  * The underlying mathematical formulas are NOT copyrighted.
  */
 
-#include "des_kernel_types.h"
+#include "types.hpp"
+#include "logical_ops.h"
+
 
 __device__ __forceinline__ void
 s1(const vtype a1, const vtype a2, const vtype a3, const vtype a4, const vtype a5, const vtype a6,

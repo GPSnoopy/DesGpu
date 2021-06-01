@@ -6,7 +6,10 @@
  * Based on Solar Designer implementation of DES_bs_b.c in jtr-v1.7.9
  */
 
-#include "des_kernel_params.h"
+#include "types.hpp"
+#include "des_kernel_key_map.h"
+#include "des_kernel_sboxes.h"
+#include "logical_ops.h"
 
 #if WORK_GROUP_SIZE > 0
 #define y48(p, q) vxorf(B[p], s_des_bs_key[q + s_key_offset])
@@ -123,6 +126,29 @@
 	SWAP(31, 63);  	\
 }
 
+#define vst_private(dst, ofs, src) 			\
+	*((vtype *)((bs_vector *)&(dst) + (ofs))) = (src)
+
+#define DES_bs_clear_block_8(j) 			\
+	vst_private(B[j] , 0, zero); 			\
+	vst_private(B[j] , 1, zero); 			\
+	vst_private(B[j] , 2, zero); 			\
+	vst_private(B[j] , 3, zero); 			\
+	vst_private(B[j] , 4, zero); 			\
+	vst_private(B[j] , 5, zero); 			\
+	vst_private(B[j] , 6, zero); 			\
+	vst_private(B[j] , 7, zero);
+
+#define DES_bs_clear_block 				\
+	DES_bs_clear_block_8(0); 			\
+	DES_bs_clear_block_8(8); 			\
+	DES_bs_clear_block_8(16); 			\
+	DES_bs_clear_block_8(24); 			\
+	DES_bs_clear_block_8(32); 			\
+	DES_bs_clear_block_8(40); 			\
+	DES_bs_clear_block_8(48); 			\
+	DES_bs_clear_block_8(56);
+
 template <
 	uint32_t index0, uint32_t index1, uint32_t index2, uint32_t index3, uint32_t index4, uint32_t index5,
 	uint32_t index6, uint32_t index7, uint32_t index8, uint32_t index9, uint32_t index10, uint32_t index11,
@@ -134,7 +160,7 @@ template <
 	uint32_t index78, uint32_t index79, uint32_t index80, uint32_t index81, uint32_t index82, uint32_t index83
 >
 inline __device__ void DES_bs_25(
-	/*__constant__*/ uint32_t *key_map, 
+	/*__constant__*/ //uint32_t *key_map, 
 	/*__device__*/ bs_vector *des_bs_key,
 	/*__device__*/ vtype *unchecked_hashes)
 {
@@ -209,12 +235,12 @@ next:
 #endif
 }
 
-__device__ void DES_bs_25_salt0(uint32_t* key_map, bs_vector* des_bs_key, vtype* unchecked_hashes)
+__device__ void DES_bs_25_salt0(bs_vector* des_bs_key, vtype* unchecked_hashes)
 {
-	DES_bs_25<31, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7, 8, 15, 16, 17, 18, 19, 20, 19, 20, 21, 22, 23, 24, 63, 32, 33, 34, 35, 36, 35, 36, 37, 38, 39, 40, 47, 48, 49, 50, 51, 52, 51, 52, 53, 54, 55, 56>(key_map, des_bs_key, unchecked_hashes);
+	DES_bs_25<31, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7, 8, 15, 16, 17, 18, 19, 20, 19, 20, 21, 22, 23, 24, 63, 32, 33, 34, 35, 36, 35, 36, 37, 38, 39, 40, 47, 48, 49, 50, 51, 52, 51, 52, 53, 54, 55, 56>(des_bs_key, unchecked_hashes);
 }
 
-__device__ void DES_bs_25_salt1(uint32_t* key_map, bs_vector* des_bs_key, vtype* unchecked_hashes)
+__device__ void DES_bs_25_salt1(bs_vector* des_bs_key, vtype* unchecked_hashes)
 {
-	DES_bs_25<15, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7, 8, 31, 16, 17, 18, 19, 20, 19, 20, 21, 22, 23, 24, 47, 32, 33, 34, 35, 36, 35, 36, 37, 38, 39, 40, 63, 48, 49, 50, 51, 52, 51, 52, 53, 54, 55, 56>(key_map, des_bs_key, unchecked_hashes);
+	DES_bs_25<15, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7, 8, 31, 16, 17, 18, 19, 20, 19, 20, 21, 22, 23, 24, 47, 32, 33, 34, 35, 36, 35, 36, 37, 38, 39, 40, 63, 48, 49, 50, 51, 52, 51, 52, 53, 54, 55, 56>(des_bs_key, unchecked_hashes);
 }
