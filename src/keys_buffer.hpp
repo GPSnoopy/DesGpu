@@ -3,36 +3,48 @@
 #include "types.hpp"
 #include <vector>
 
-#define PADDING 	2048
-
-
-
 class keys_buffer
 {
 public:
-	
-	keys_buffer(size_t global_work_size, size_t padding);
 
+	keys_buffer(const keys_buffer&) = delete;
+	keys_buffer(keys_buffer&&) = delete;
+	keys_buffer& operator = (const keys_buffer&) = delete;
+	keys_buffer& operator = (keys_buffer&&) = delete;
+	
+	explicit keys_buffer(size_t global_work_size);
+	~keys_buffer();
+	
+	[[nodiscard]] size_t global_work_size() const { return global_work_size_; }
+	[[nodiscard]] size_t number_of_keys() const { return global_work_size_ * depth; }
+	[[nodiscard]] const std::vector<keys_transfer>& keys_transfers() const { return keys_transfers_; }
+	[[nodiscard]] const keys_transfer* keys_transfers_device() const { return keys_transfers_device_; }
+	[[nodiscard]] const bs_vector* bitsplitted_keys_device() const { return bitsplitted_keys_device_; }
+	[[nodiscard]] std::vector<bs_vector> get_bitsplitted_keys_from_device() const;
+	
 	void set_key(const uint8_t* key, uint32_t index);
 	void set_key(const char* const key, const uint32_t index) { set_key(reinterpret_cast<const uint8_t*>(key), index); }
-
-	const std::vector<keys_transfer>& keys_transfers() const { return keys_transfers_; }
-
-
+	
+	void copy_keys_to_device();
+	void bitsplit_keys_on_device(size_t threads_per_block);
 
 private:
 
-	static const uint32_t DES_BS_DEPTH = 32;
-	static const uint32_t DES_LOG_DEPTH = 5;
+	static const uint32_t depth = 32;
+	static const uint32_t log_depth = 5;
 
 	// Pointers into keys_bs_transfer to make setting keys easier.
 	// It projects 32 DSE keys of 8 bits length to their actual storage layout.
 	// There is one instance per CUDA thread.
 	struct keys_view
 	{
-		uint8_t* pxkeys[DES_BS_DEPTH]; // Pointers to keys_bs_transfer.xkeys.c
+		uint8_t* pxkeys[depth]; // Pointers to keys_bs_transfer.xkeys.c
 	};
 
+	const size_t global_work_size_;
 	std::vector<keys_transfer> keys_transfers_;
 	std::vector<keys_view> keys_views_;
+
+	keys_transfer* keys_transfers_device_{};
+	bs_vector* bitsplitted_keys_device_{};
 };
