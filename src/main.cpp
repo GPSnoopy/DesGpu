@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "cuda_utils.hpp"
-#include "../test/test_keys_buffer.hpp"
+#include "../test/run_all_tests.hpp"
 
 using namespace std;
 
@@ -37,17 +37,12 @@ void initialize_cuda(const int selected_device)
 	CudaCheck(cudaSetDevice(selected_device));
 }
 
-void run_tests()
-{
-	test_keys_buffer();
-}
-
 int main(int argc, char* argv[])
 {
 	try
 	{
 		initialize_cuda(0);
-		run_tests();
+		run_all_tests();
 		
 		return EXIT_SUCCESS;
 	}

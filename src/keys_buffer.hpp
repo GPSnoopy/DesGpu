@@ -3,7 +3,7 @@
 #include "types.hpp"
 #include <vector>
 
-class keys_buffer
+class keys_buffer final
 {
 public:
 

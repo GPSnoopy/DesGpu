@@ -4,8 +4,11 @@ set(exe_name ${MAIN_PROJECT})
 set(src_files_cuda
 	des_kernel_key_map.h
 	des_kernel_params.h
+	des_kernel_salt_dispatch.h
+	des_kernel_salt_instances.h
 	des_kernel_sboxes.h
 	des_kernel.cu
+	des_kernel.h
 	keys_kernel.cu
 	keys_kernel.h
 	logical_ops.h
@@ -14,15 +17,23 @@ set(src_files_cuda
 set(src_files_test
 	../test/assert_equal.cpp
 	../test/assert_equal.hpp
+	../test/run_all_tests.cpp
+	../test/run_all_tests.hpp
+	../test/test_base64.cpp
+	../test/test_base64.hpp
+	../test/test_des_crypter.cpp
+	../test/test_des_crypter.hpp
 	../test/test_keys_buffer.cpp
 	../test/test_keys_buffer.hpp
 )
 
 set(src_files
+	base64.cpp
+	base64.hpp
 	cuda_utils.cpp
 	cuda_utils.hpp
-	des_bitslice.cpp
-	des_bitslice.hpp
+	des_crypter.cpp
+	des_crypter.hpp
 	keys_buffer.cpp
 	keys_buffer.hpp
 	types.hpp

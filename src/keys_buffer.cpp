@@ -5,7 +5,7 @@
 #include <limits>
 #include <stdexcept>
 
-keys_buffer::keys_buffer(const size_t global_work_size):
+keys_buffer::keys_buffer(const size_t global_work_size) :
 	global_work_size_(global_work_size),
 	keys_transfers_(global_work_size),
 	keys_views_(global_work_size)
@@ -20,14 +20,16 @@ keys_buffer::keys_buffer(const size_t global_work_size):
 		}
 	}
 
-	CudaCheck(cudaMalloc(&keys_transfers_device_, keys_transfers().size() * sizeof(keys_transfer)));
-	CudaCheck(cudaMalloc(&bitsplitted_keys_device_, keys_transfers().size() * sizeof(bs_vector) * 56));
+	CudaCheck(cudaMalloc(&keys_transfers_device_, global_work_size * sizeof(keys_transfer)));
+	CudaCheck(cudaMalloc(&bitsplitted_keys_device_, global_work_size * sizeof(bs_vector) * 56));
 }
 
 keys_buffer::~keys_buffer()
 {
+	CudaCheck(cudaFree(bitsplitted_keys_device_));
 	CudaCheck(cudaFree(keys_transfers_device_));
 
+	bitsplitted_keys_device_ = nullptr;
 	keys_transfers_device_ = nullptr;
 }
 
@@ -38,7 +40,7 @@ std::vector<bs_vector> keys_buffer::get_bitsplitted_keys_from_device() const
 	CudaCheck(
 		cudaMemcpy(
 			bitsplitted_keys.data(),
-			bitsplitted_keys_device_,
+			bitsplitted_keys_device(),
 			bitsplitted_keys.size() * sizeof(bs_vector),
 			cudaMemcpyDeviceToHost));
 
