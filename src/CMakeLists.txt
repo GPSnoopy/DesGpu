@@ -3,7 +3,6 @@ set(exe_name ${MAIN_PROJECT})
 
 set(src_files_cuda
 	des_kernel_key_map.h
-	des_kernel_params.h
 	des_kernel_salt_dispatch.h
 	des_kernel_salt_instances.h
 	des_kernel_sboxes.h
