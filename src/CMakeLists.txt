@@ -18,21 +18,19 @@ set(src_files_test
 	../test/assert_equal.hpp
 	../test/run_all_tests.cpp
 	../test/run_all_tests.hpp
-	../test/test_base64.cpp
-	../test/test_base64.hpp
-	../test/test_des_crypter.cpp
-	../test/test_des_crypter.hpp
+	../test/test_des_encrypter.cpp
+	../test/test_des_encrypter.hpp
 	../test/test_keys_buffer.cpp
 	../test/test_keys_buffer.hpp
 )
 
 set(src_files
-	base64.cpp
-	base64.hpp
 	cuda_utils.cpp
 	cuda_utils.hpp
-	des_crypter.cpp
-	des_crypter.hpp
+	des_base64.cpp
+	des_base64.hpp
+	des_encrypter.cpp
+	des_encrypter.hpp
 	keys_buffer.cpp
 	keys_buffer.hpp
 	types.hpp

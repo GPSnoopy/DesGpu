@@ -188,7 +188,7 @@ inline __device__ void des_25_encrypt(
 		DES_bs_clear_block
 	}
 
-#ifdef SAFE_GOTO
+#if 1// SAFE_GOTO
 	vtype tmp;
 
 	for (iterations = 24; iterations >= 0; iterations--) {

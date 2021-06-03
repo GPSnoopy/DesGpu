@@ -6,17 +6,17 @@
 class keys_buffer;
 
 // Implements Unix DES password encryption (i.e. 25-pass DES encryption of 0x00000000 using the given key).
-class des_crypter final
+class des_encrypter final
 {
 public:
 
-	des_crypter(const des_crypter&) = delete;
-	des_crypter(des_crypter&&) = delete;
-	des_crypter& operator = (const des_crypter&) = delete;
-	des_crypter& operator = (des_crypter&&) = delete;
+	des_encrypter(const des_encrypter&) = delete;
+	des_encrypter(des_encrypter&&) = delete;
+	des_encrypter& operator = (const des_encrypter&) = delete;
+	des_encrypter& operator = (des_encrypter&&) = delete;
 
-	explicit des_crypter(size_t global_work_size);
-	~des_crypter();
+	explicit des_encrypter(size_t global_work_size);
+	~des_encrypter();
 
 	[[nodiscard]] size_t global_work_size() const { return global_work_size_; }
 	[[nodiscard]] const vtype* hashes_device() const { return hashes_device_; }

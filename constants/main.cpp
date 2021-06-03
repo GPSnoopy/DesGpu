@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
 		
 		print_salt_indices(std::cout, salt_indices, 0);
 		print_salt_indices(std::cout, salt_indices, 1);
+		print_salt_indices(std::cout, salt_indices, 194);
 
 		const auto key_map = create_key_map();
 

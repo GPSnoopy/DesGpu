@@ -1,23 +1,23 @@
-#include "des_crypter.hpp"
+#include "des_encrypter.hpp"
 #include "cuda_utils.hpp"
 #include "des_kernel.h"
 #include "keys_buffer.hpp"
 #include <format>
 
-des_crypter::des_crypter(size_t global_work_size) :
+des_encrypter::des_encrypter(size_t global_work_size) :
 	global_work_size_(global_work_size)
 {
 	CudaCheck(cudaMalloc(&hashes_device_, global_work_size * sizeof(vtype) * 64));
 }
 
-des_crypter::~des_crypter()
+des_encrypter::~des_encrypter()
 {
 	CudaCheck(cudaFree(hashes_device_));
 
 	hashes_device_ = nullptr;
 }
 
-std::vector<vtype> des_crypter::get_hashes_from_device() const
+std::vector<vtype> des_encrypter::get_hashes_from_device() const
 {
 	std::vector<vtype> hashes(global_work_size() * 64);
 
@@ -32,7 +32,7 @@ std::vector<vtype> des_crypter::get_hashes_from_device() const
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void des_crypter::encrypt_keys_on_device(const keys_buffer& keys, const uint32_t salt, const size_t threads_per_block)
+void des_encrypter::encrypt_keys_on_device(const keys_buffer& keys, const uint32_t salt, const size_t threads_per_block)
 {
 	const size_t num_blocks = global_work_size() / threads_per_block;
 
