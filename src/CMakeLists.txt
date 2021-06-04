@@ -18,6 +18,8 @@ set(src_files_test
 	../test/assert_equal.hpp
 	../test/run_all_tests.cpp
 	../test/run_all_tests.hpp
+	../test/test_des_base64.cpp
+	../test/test_des_base64.hpp
 	../test/test_des_encrypter.cpp
 	../test/test_des_encrypter.hpp
 	../test/test_keys_buffer.cpp

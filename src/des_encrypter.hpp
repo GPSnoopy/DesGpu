@@ -21,8 +21,12 @@ public:
 	[[nodiscard]] size_t global_work_size() const { return global_work_size_; }
 	[[nodiscard]] const vtype* hashes_device() const { return hashes_device_; }
 	[[nodiscard]] std::vector<vtype> get_hashes_from_device() const;
-	
+
 	void encrypt_keys_on_device(const keys_buffer& keys, uint32_t salt, size_t threads_per_block);
+
+	static uint64_t initial_permutation(uint64_t value);
+	static uint64_t final_permutation(uint64_t value); // inverse of initial_permutation();
+
 
 private:
 

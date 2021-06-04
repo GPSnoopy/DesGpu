@@ -51,4 +51,9 @@ namespace assert
 	{
 		are_equal<uint32_t>(expected, value);
 	}
+
+	inline void are_equal(const uint64_t expected, const uint64_t value)
+	{
+		are_equal<uint64_t>(expected, value);
+	}
 }

@@ -1,7 +1,10 @@
 #include "test_des_encrypter.hpp"
+#include "assert_equal.hpp"
 #include "des_base64.hpp"
 #include "des_encrypter.hpp"
 #include "keys_buffer.hpp"
+
+using namespace assert;
 
 void test_des_encrypter_one_password()
 {
@@ -35,6 +38,9 @@ void test_des_encrypter_one_password()
 
 	const auto hash_string = hash_to_string(hash);
 	const auto input_hash = hash_to_int(expected_hash.substr(2));
+
+	are_equal(des_encrypter::initial_permutation(input_hash), hash);
+	are_equal(input_hash, des_encrypter::final_permutation(hash));
 }
 
 void test_des_encrypter()

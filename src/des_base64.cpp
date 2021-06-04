@@ -70,45 +70,26 @@ uint64_t hash_to_int(const std::string& str)
 {
 	if (str.size() != 11) throw std::out_of_range("string size is not equal to 11");
 
-	const auto it0 = std::ranges::find(char_set, str[0]);
-	const auto it1 = std::ranges::find(char_set, str[1]);
-	const auto it2 = std::ranges::find(char_set, str[2]);
-	const auto it3 = std::ranges::find(char_set, str[3]);
-	const auto it4 = std::ranges::find(char_set, str[4]);
-	const auto it5 = std::ranges::find(char_set, str[5]);
-	const auto it6 = std::ranges::find(char_set, str[6]);
-	const auto it7 = std::ranges::find(char_set, str[7]);
-	const auto it8 = std::ranges::find(char_set, str[8]);
-	const auto it9 = std::ranges::find(char_set, str[9]);
-	const auto it10 = std::ranges::find(char_set, str[10]);
-
-	if (
-		it0 == char_set.end() || 
-		it1 == char_set.end() ||
-		it2 == char_set.end() ||
-		it3 == char_set.end() ||
-		it4 == char_set.end() ||
-		it5 == char_set.end() ||
-		it6 == char_set.end() ||
-		it7 == char_set.end() ||
-		it8 == char_set.end() ||
-		it9 == char_set.end() ||
-		it10 == char_set.end())
+	uint32_t dst_bit = 0;
+	uint64_t hash = 0;
+	
+	for (size_t c = 0; c < 11; ++c)
 	{
-		throw std::out_of_range("string contains invalid characters");
+		// Linear search is not particularly efficient, but IMHO more readable.
+		const auto it = std::ranges::find(char_set, str[c]);
+		if (it == char_set.end())
+		{
+			throw std::out_of_range("string contains invalid characters");
+		}
+
+		const auto value = it - char_set.begin();
+
+		// DES is big-endian, so we need to add the char bits in reverse order, char by char.
+		for (uint32_t b = 0; b < 6; ++b)
+		{
+			hash |= ((value & (0x20 >> b)) ? static_cast<uint64_t>(1) : 0) << dst_bit++;
+		}
 	}
 
-	return static_cast<uint64_t>(
-		(it0 - char_set.begin()) |
-		((it1 - char_set.begin()) << 6) |
-		((it2 - char_set.begin()) << 12) |
-		((it3 - char_set.begin()) << 18) |
-		((it4 - char_set.begin()) << 24) |
-		((it5 - char_set.begin()) << 30) |
-		((it6 - char_set.begin()) << 36) |
-		((it7 - char_set.begin()) << 42) |
-		((it8 - char_set.begin()) << 48) |
-		((it9 - char_set.begin()) << 54) |
-		((it10 - char_set.begin()) << 60)
-	);
+	return hash;
 }
