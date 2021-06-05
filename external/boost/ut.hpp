@@ -1183,19 +1183,19 @@ class runner {
       : reporter_{std::move(reporter)}, suites_(suites_size) {}
 
   ~runner() {
-    const auto should_run = not run_;
+    //const auto should_run = not run_;
 
-    if (should_run) {
-      static_cast<void>(run());
-    }
+    //if (should_run) {
+    //  static_cast<void>(run());
+    //}
 
-    if (not dry_run_) {
-      reporter_.on(events::summary{});
-    }
+    //if (not dry_run_) {
+    //  reporter_.on(events::summary{});
+    //}
 
-    if (should_run and fails_) {
-      std::exit(-1);
-    }
+    //if (should_run and fails_) {
+    //  std::exit(-1);
+    //}
   }
 
   auto operator=(const options& options) {
@@ -1322,9 +1322,9 @@ class runner {
     }
     suites_.clear();
 
-    if (rc.report_errors) {
+    //if (rc.report_errors) {
       reporter_.on(events::summary{});
-    }
+    //}
 
     return fails_ > 0;
   }

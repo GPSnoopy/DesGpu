@@ -1,3 +1,3 @@
 #pragma once
 
-void run_all_tests();
+[[nodiscard]] int run_all_tests();

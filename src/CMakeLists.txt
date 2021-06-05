@@ -14,8 +14,6 @@ set(src_files_cuda
 )
 
 set(src_files_test
-	../test/assert_equal.cpp
-	../test/assert_equal.hpp
 	../test/run_all_tests.cpp
 	../test/run_all_tests.hpp
 	../test/test_des_base64.cpp
@@ -50,6 +48,6 @@ add_executable(${exe_name}
 )
 
 set_target_properties(${exe_name} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-target_include_directories(${exe_name} PRIVATE .)
-#target_link_directories(${exe_name} PRIVATE ${Vulkan_LIBRARY})
+target_compile_definitions(${exe_name} PRIVATE -DBOOST_UT_DISABLE_MODULE)
+target_include_directories(${exe_name} PRIVATE . ../external)
 target_link_libraries(${exe_name} PRIVATE )

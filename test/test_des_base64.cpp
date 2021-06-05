@@ -1,23 +1,19 @@
 #include "test_des_base64.hpp"
-#include "assert_equal.hpp"
 #include "des_base64.hpp"
+#include <boost/ut.hpp>
 
-using namespace assert;
+using namespace boost::ext::ut;
 
-void test_des_base64_password_hash()
+void register_des_base64_tests()
 {
-	const std::string password_hash = "01Q2aNxdM.j6k";
+	"des_base64_password_hash"_test = []
+	{
+		const std::string password_hash = "01Q2aNxdM.j6k";
 
-	const uint32_t salt = salt_to_int(password_hash.substr(0, 2));
-	const uint64_t hash = hash_to_int(password_hash.substr(2));
+		const uint32_t salt = salt_to_int(password_hash.substr(0, 2));
+		const uint64_t hash = hash_to_int(password_hash.substr(2));
 
-	are_equal(194, salt);
-	are_equal(0x313d00696f99920e, hash);
-}
-
-TODO print test names (need util method/macro for that)
-
-void test_des_base64()
-{
-	test_des_base64_password_hash();
+		expect(eq(194, salt));
+		expect(eq(0x313d00696f99920e, hash));
+	};
 }

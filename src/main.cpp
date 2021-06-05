@@ -1,11 +1,13 @@
 
+#include "cuda_utils.hpp"
+#include "../test/run_all_tests.hpp"
+#include <boost/ut.hpp>
 #include <cstdlib>
 #include <format>
 #include <iostream>
 #include <stdexcept>
 
-#include "cuda_utils.hpp"
-#include "../test/run_all_tests.hpp"
+
 
 using namespace std;
 
@@ -42,8 +44,12 @@ int main(int argc, char* argv[])
 	try
 	{
 		initialize_cuda(0);
-		run_all_tests();
-		
+
+		if (const int r = run_all_tests(); r != EXIT_SUCCESS)
+		{
+			return r;
+		}
+
 		return EXIT_SUCCESS;
 	}
 

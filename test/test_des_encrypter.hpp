@@ -1,3 +1,3 @@
 #pragma once
 
-void test_des_encrypter();
+void register_des_encrypter_tests();

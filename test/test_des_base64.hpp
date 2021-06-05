@@ -1,3 +1,3 @@
 #pragma once
 
-void test_des_base64();
+void register_des_base64_tests();

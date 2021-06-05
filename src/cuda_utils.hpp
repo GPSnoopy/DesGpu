@@ -12,7 +12,7 @@ void throw_cuda_error(cudaError_t result, char const* func, const std::source_lo
 
 inline void check_cuda_error(const cudaError_t result, char const* const func, const std::source_location location = std::source_location::current())
 {
-	if (!result)
+	if (result)
 	{
 		throw_cuda_error(result, func, location);
 	}

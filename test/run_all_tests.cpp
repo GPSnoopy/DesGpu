@@ -3,9 +3,13 @@
 #include "test_des_encrypter.hpp"
 #include "test_keys_buffer.hpp"
 
-void run_all_tests()
+#include <boost/ut.hpp>
+
+int run_all_tests()
 {
-	test_des_base64();
-	test_des_encrypter();
-	test_keys_buffer();
+	register_des_base64_tests();
+	register_keys_buffer_tests();
+	register_des_encrypter_tests();
+
+	return boost::ext::ut::cfg<>.run();
 }

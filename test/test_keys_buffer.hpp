@@ -1,3 +1,3 @@
 #pragma once
 
-void test_keys_buffer();
+void register_keys_buffer_tests();

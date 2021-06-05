@@ -86,7 +86,7 @@ namespace
 			value = DES_atoi64[(ciphertext[chr + ofs])];
 			mask = 0x20;
 
-			std::cout << "raw_get_binary: " << value << std::endl;
+			//std::cout << "raw_get_binary: " << value << std::endl;
 
 			for (src = 0; src < 6; src++) {
 				if (value & mask)
