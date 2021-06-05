@@ -4,7 +4,8 @@
 
 namespace
 {
-	const std::array<uint8_t, 48> DES_E =
+	// Expansion function
+	const std::array<uint8_t, 48> des_e =
 	{
 		31, 0, 1, 2, 3, 4,
 		3, 4, 5, 6, 7, 8,
@@ -35,8 +36,8 @@ namespace
 					src2 = dst;
 				}
 
-				const int32_t sp1 = DES_E[src1];
-				const int32_t sp2 = DES_E[src2];
+				const int32_t sp1 = des_e[src1];
+				const int32_t sp2 = des_e[src2];
 
 				processed_salts[4096 * 96 + dst] = sp1;
 				processed_salts[4096 * 96 + dst + 24] = sp2;
