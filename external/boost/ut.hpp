@@ -54,6 +54,7 @@ export import std;
 
 #include <array>
 #include <iostream>
+#include <source_location>
 #include <sstream>
 #include <string_view>
 #include <utility>
@@ -205,28 +206,6 @@ template <class T = std::string_view, class TDelim>
 }  // namespace utility
 
 namespace reflection {
-class source_location {
- public:
-  [[nodiscard]] static constexpr auto current(
-#if (__has_builtin(__builtin_FILE) and __has_builtin(__builtin_LINE))
-      const char* file = __builtin_FILE(), int line = __builtin_LINE()
-#else
-      const char* file = "unknown", int line = {}
-#endif
-          ) noexcept {
-    source_location sl{};
-    sl.file_ = file;
-    sl.line_ = line;
-    return sl;
-  }
-  [[nodiscard]] constexpr auto file_name() const noexcept { return file_; }
-  [[nodiscard]] constexpr auto line() const noexcept { return line_; }
-
- private:
-  const char* file_{"unknown"};
-  int line_{};
-};
-
 template <class T>
 [[nodiscard]] constexpr auto type_name() -> std::string_view {
 #if defined(_MSC_VER) and not defined(__clang__)
@@ -420,14 +399,14 @@ namespace events {
 struct test_begin {
   std::string_view type{};
   std::string_view name{};
-  reflection::source_location location{};
+  std::source_location location{};
 };
 template <class Test, class TArg = none>
 struct test {
   std::string_view type{};
   std::string_view name{};
   std::vector<std::string_view> tag{};
-  reflection::source_location location{};
+  std::source_location location{};
   TArg arg{};
   Test run{};
 
@@ -451,7 +430,7 @@ struct test {
 };
 template <class Test, class TArg>
 test(std::string_view, std::string_view, std::string_view,
-     reflection::source_location, TArg, Test) -> test<Test, TArg>;
+     std::source_location, TArg, Test) -> test<Test, TArg>;
 template <class TSuite>
 struct suite {
   TSuite run{};
@@ -479,21 +458,21 @@ struct test_skip {
 template <class TExpr>
 struct assertion {
   TExpr expr{};
-  reflection::source_location location{};
+  std::source_location location{};
 };
 template <class TExpr>
-assertion(TExpr, reflection::source_location) -> assertion<TExpr>;
+assertion(TExpr, std::source_location) -> assertion<TExpr>;
 template <class TExpr>
 struct assertion_pass {
   TExpr expr{};
-  reflection::source_location location{};
+  std::source_location location{};
 };
 template <class TExpr>
 assertion_pass(TExpr) -> assertion_pass<TExpr>;
 template <class TExpr>
 struct assertion_fail {
   TExpr expr{};
-  reflection::source_location location{};
+  std::source_location location{};
 };
 template <class TExpr>
 assertion_fail(TExpr) -> assertion_fail<TExpr>;
@@ -519,7 +498,7 @@ namespace detail {
 struct op {};
 struct fatal {};
 struct cfg {
-  static inline reflection::source_location location{};
+  static inline std::source_location location{};
   static inline bool wip{};
 };
 
@@ -588,15 +567,15 @@ template <class T>
 class value_location : public detail::value<T> {
  public:
   constexpr /*explicit(false)*/ value_location(
-      const T& t, const reflection::source_location& sl =
-                      reflection::source_location::current())
+      const T& t, const std::source_location& sl =
+                      std::source_location::current())
       : detail::value<T>{t} {
     cfg::location = sl;
   }
 
   constexpr value_location(const T& t, const T precision,
-                           const reflection::source_location& sl =
-                               reflection::source_location::current())
+                           const std::source_location& sl =
+                               std::source_location::current())
       : detail::value<T>{t, precision} {
     cfg::location = sl;
   }
@@ -1382,12 +1361,12 @@ template <class Test>
 struct test_location {
   template <class T>
   constexpr test_location(const T& t,
-                          const reflection::source_location& sl =
-                              reflection::source_location::current())
+                          const std::source_location& sl =
+                              std::source_location::current())
       : test{t}, location{sl} {}
 
   Test test{};
-  reflection::source_location location{};
+  std::source_location location{};
 };
 
 struct test {
@@ -2019,8 +1998,8 @@ template <class TExpr, type_traits::requires_t<
                            type_traits::is_op_v<TExpr> or
                            type_traits::is_convertible_v<TExpr, bool>> = 0>
 constexpr auto expect(const TExpr& expr,
-                      const reflection::source_location& sl =
-                          reflection::source_location::current()) {
+                      const std::source_location& sl =
+                          std::source_location::current()) {
   return detail::expect_<TExpr>{detail::on<TExpr>(
       events::assertion<TExpr>{.expr = expr, .location = sl})};
 }

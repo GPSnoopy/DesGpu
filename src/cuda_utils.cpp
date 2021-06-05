@@ -16,7 +16,13 @@ public:
 	const cudaError_t cuda_error;
 };
 
-void throw_cuda_error(const cudaError_t result, char const* const func, const char* const file, const int line)
+void throw_cuda_error(const cudaError_t result, char const* const func, const std::source_location& location)
 {
-	throw cuda_exception(result, std::format("CUDA error at {}:{} code={} ({}) '{}'", file, line, static_cast<unsigned int>(result), cudaGetErrorString(result), func));
+	throw cuda_exception(result, 
+		std::format("'{}' ({}) returned by '{}' at {}:{} in {}()", 
+			cudaGetErrorString(result),
+			static_cast<unsigned int>(result),
+			func,
+			location.file_name(),
+			location.line(), location.function_name()));
 }
