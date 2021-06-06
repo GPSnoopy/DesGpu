@@ -125,29 +125,6 @@
 	SWAP(31, 63);  	\
 }
 
-#define vst_private(dst, ofs, src) 			\
-	*((vtype *)((bs_vector *)&(dst) + (ofs))) = (src)
-
-#define DES_bs_clear_block_8(j) 			\
-	vst_private(B[j] , 0, zero); 			\
-	vst_private(B[j] , 1, zero); 			\
-	vst_private(B[j] , 2, zero); 			\
-	vst_private(B[j] , 3, zero); 			\
-	vst_private(B[j] , 4, zero); 			\
-	vst_private(B[j] , 5, zero); 			\
-	vst_private(B[j] , 6, zero); 			\
-	vst_private(B[j] , 7, zero);
-
-#define DES_bs_clear_block 				\
-	DES_bs_clear_block_8(0); 			\
-	DES_bs_clear_block_8(8); 			\
-	DES_bs_clear_block_8(16); 			\
-	DES_bs_clear_block_8(24); 			\
-	DES_bs_clear_block_8(32); 			\
-	DES_bs_clear_block_8(40); 			\
-	DES_bs_clear_block_8(48); 			\
-	DES_bs_clear_block_8(56);
-
 template <
 	uint32_t index0, uint32_t index1, uint32_t index2, uint32_t index3, uint32_t index4, uint32_t index5,
 	uint32_t index6, uint32_t index7, uint32_t index8, uint32_t index9, uint32_t index10, uint32_t index11,
@@ -167,7 +144,7 @@ inline __device__ void des_25_encrypt(
 	const int section = blockIdx.x * blockDim.x + threadIdx.x; // get_global_id(0);
 	const int gws = gridDim.x * blockDim.x;//get_global_size(0);
 
-	vtype B[64];
+	vtype B[64] = { 0 };
 
 	int iterations;
 	int k, i;
@@ -181,12 +158,8 @@ inline __device__ void des_25_encrypt(
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 #endif
-	{
-		const vtype zero = 0;
-		DES_bs_clear_block
-	}
 
-#if 1// SAFE_GOTO
+#if 1//SAFE_GOTO
 	vtype tmp;
 
 	for (iterations = 24; iterations >= 0; iterations--) {
