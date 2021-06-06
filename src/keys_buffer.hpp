@@ -16,7 +16,7 @@ public:
 	~keys_buffer();
 	
 	[[nodiscard]] size_t global_work_size() const { return global_work_size_; }
-	[[nodiscard]] size_t number_of_keys() const { return global_work_size_ * depth; }
+	[[nodiscard]] size_t max_number_of_keys() const { return global_work_size_ * depth; }
 	[[nodiscard]] const std::vector<keys_transfer>& keys_transfers() const { return keys_transfers_; }
 	[[nodiscard]] const keys_transfer* keys_transfers_device() const { return keys_transfers_device_; }
 	[[nodiscard]] const bs_vector* bitsplitted_keys_device() const { return bitsplitted_keys_device_; }

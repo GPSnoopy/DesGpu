@@ -6,7 +6,7 @@ using namespace boost::ext::ut;
 
 void register_des_base64_tests()
 {
-	"des_base64_password_hash"_test = []
+	"des_base64_salt_and_password_hash"_test = []
 	{
 		const std::string password_hash = "01Q2aNxdM.j6k";
 
@@ -15,5 +15,8 @@ void register_des_base64_tests()
 
 		expect(eq(194, salt));
 		expect(eq(0x313d00696f99920e, hash));
+
+		expect(eq(std::string("01"), salt_to_string(salt)));
+		expect(eq(std::string("Q2aNxdM.j6k"), hash_to_string(hash)));
 	};
 }

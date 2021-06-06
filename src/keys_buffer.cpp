@@ -10,7 +10,7 @@ keys_buffer::keys_buffer(const size_t global_work_size) :
 	keys_transfers_(global_work_size),
 	keys_views_(global_work_size)
 {
-	if (number_of_keys() > std::numeric_limits<int32_t>::max()) throw std::out_of_range("number of keys has to be less than 2^31");
+	if (max_number_of_keys() > std::numeric_limits<int32_t>::max()) throw std::out_of_range("number of keys has to be less than 2^31");
 	
 	for (size_t block = 0; block < global_work_size; ++block)
 	{

@@ -47,21 +47,21 @@ uint32_t salt_to_int(const std::string& str)
 
 std::string hash_to_string(const uint64_t hash)
 {
-	char str[12] =
+	char str[12] = { 0 };
+
+	for (size_t c = 0; c < 11; ++c)
 	{
-		char_set[(hash >> 0) % 64],
-		char_set[(hash >> 6) % 64],
-		char_set[(hash >> 12) % 64],
-		char_set[(hash >> 18) % 64],
-		char_set[(hash >> 24) % 64],
-		char_set[(hash >> 30) % 64],
-		char_set[(hash >> 36) % 64],
-		char_set[(hash >> 42) % 64],
-		char_set[(hash >> 48) % 64],
-		char_set[(hash >> 54) % 64],
-		char_set[(hash >> 60) % 64],
-		0
-	};
+		const auto value = (hash >> (c * 6)) % 64;
+		uint32_t symbol = 0;
+
+		// DES is big-endian, so we need to add the char bits in reverse order, char by char.
+		for (uint32_t b = 0; b < 6; ++b)
+		{
+			symbol |= ((value & (0x20 >> b)) ? 1 : 0) << b;
+		}
+
+		str[c] = char_set[symbol];
+	}
 
 	return std::string(str);
 }
