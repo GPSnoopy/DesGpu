@@ -84,45 +84,19 @@
 		y48(62, 50), y48(63, 42), y48(32, 21),\
 		B,4, 26, 14, 20);
 
-#define SWAP(a, b) {	\
-	tmp = B[a];	\
-	B[a] = B[b];	\
-	B[b] = tmp;	\
+template <typename T>
+__forceinline__ __device__ void swap(T& a, T& b)
+{
+	T c(a); a = b; b = c;
 }
 
-#define BIG_SWAP() { 	\
-	SWAP(0, 32);	\
-	SWAP(1, 33);	\
-	SWAP(2, 34);	\
-	SWAP(3, 35);	\
-	SWAP(4, 36);	\
-	SWAP(5, 37);	\
-	SWAP(6, 38);	\
-	SWAP(7, 39);	\
-	SWAP(8, 40);	\
-	SWAP(9, 41);	\
-	SWAP(10, 42);	\
-	SWAP(11, 43);	\
-	SWAP(12, 44);	\
-	SWAP(13, 45);	\
-	SWAP(14, 46);	\
-	SWAP(15, 47);	\
-	SWAP(16, 48);	\
-	SWAP(17, 49);	\
-	SWAP(18, 50);	\
-	SWAP(19, 51);	\
-	SWAP(20, 52);	\
-	SWAP(21, 53);	\
-	SWAP(22, 54);	\
-	SWAP(23, 55);	\
-	SWAP(24, 56);	\
-	SWAP(25, 57);	\
-	SWAP(26, 58);	\
-	SWAP(27, 59);	\
-	SWAP(28, 60);	\
-	SWAP(29, 61);	\
-	SWAP(30, 62);	\
-	SWAP(31, 63);  	\
+__forceinline__  __device__ void big_swap(vtype B[64])
+{
+	#pragma unroll
+	for (int32_t i = 0; i < 32; ++i)
+	{
+		swap(B[i], B[32 + i]);
+	}
 }
 
 template <
@@ -135,7 +109,7 @@ template <
 	uint32_t index72, uint32_t index73, uint32_t index74, uint32_t index75, uint32_t index76, uint32_t index77,
 	uint32_t index78, uint32_t index79, uint32_t index80, uint32_t index81, uint32_t index82, uint32_t index83
 >
-inline __device__ void des_25_encrypt(
+__device__ void des_25_encrypt(
 	/*__constant__*/ //uint32_t *key_map, 
 	/*__device__*/ vtype* const unchecked_hashes,
 	/*__device__*/ const bs_vector* const bitsplitted_keys
@@ -160,17 +134,16 @@ inline __device__ void des_25_encrypt(
 #endif
 
 #if 1//SAFE_GOTO
-	vtype tmp;
 
 	for (iterations = 24; iterations >= 0; iterations--) {
 		for (k = 0; k < 768; k += 96) {
 			H1_s();
 			H2_s();
 		}
-		BIG_SWAP();
+		big_swap(B);
 	}
 
-	BIG_SWAP();
+	big_swap(B);
 	for (i = 0; i < 64; i++)
 		unchecked_hashes[i * gws + section] = B[i];
 
