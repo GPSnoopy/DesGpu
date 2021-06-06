@@ -128,6 +128,7 @@ void save_salt_instances(const std::vector<uint32_t>& salt_indices)
 		out << "#include \"des_kernel_encrypt.h\"\n";
 		out << "#include \"des_kernel_salt_instances.h\"\n\n";
 
+		// There are too many salt instances of the encrypt function to compile in decent time. Split them into multiple files.
 		for (size_t salt_inc = 0; salt_inc < 128; ++salt_inc, ++salt)
 		{
 			out << "__global__ void des_25_encrypt_salt" << salt << "(vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";

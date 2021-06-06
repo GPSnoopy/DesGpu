@@ -49,8 +49,8 @@ set(src_files_cuda_parallel_compilation
 )
 
 set(src_files_test
-	../test/run_all_tests.cpp
-	../test/run_all_tests.hpp
+	../test/all_tests.cpp
+	../test/all_tests.hpp
 	../test/test_des_base64.cpp
 	../test/test_des_base64.hpp
 	../test/test_des_encrypter.cpp
@@ -60,6 +60,8 @@ set(src_files_test
 )
 
 set(src_files
+	benchmark.cpp
+	benchmark.hpp
 	cuda_utils.cpp
 	cuda_utils.hpp
 	des_base64.cpp

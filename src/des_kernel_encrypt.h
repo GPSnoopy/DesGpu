@@ -14,8 +14,8 @@
 #define y48(p, q) vxorf(B[p], s_des_bs_key[q + s_key_offset])
 #define z(p, q) vxorf(B[p], s_des_bs_key[key_map[q + k] + s_key_offset])
 #else
-#define y48(p, q) vxorf(B[p], des_bs_key[section + q * gws])
-#define z(p, q) vxorf(B[p], des_bs_key[section + key_map[q + k] * gws])
+#define y48(p, q) vxorf(B[p], bitsplitted_keys[section + q * gws])
+#define z(p, q) vxorf(B[p], bitsplitted_keys[section + key_map[q + k] * gws])
 #endif
 
 #define H1_s()\
@@ -161,7 +161,7 @@ template <
 inline __device__ void des_25_encrypt(
 	/*__constant__*/ //uint32_t *key_map, 
 	/*__device__*/ vtype* const unchecked_hashes,
-	/*__device__*/ const bs_vector* const des_bs_key
+	/*__device__*/ const bs_vector* const bitsplitted_keys
 )
 {
 	const int section = blockIdx.x * blockDim.x + threadIdx.x; // get_global_id(0);
@@ -177,7 +177,7 @@ inline __device__ void des_25_encrypt(
 	int lid = get_local_id(0);
 	int s_key_offset = 56 * lid;
 	for (i = 0; i < 56; i++)
-		s_des_bs_key[lid * 56 + i] = des_bs_key[section + i * gws];
+		s_des_bs_key[lid * 56 + i] = bitsplitted_keys[section + i * gws];
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 #endif

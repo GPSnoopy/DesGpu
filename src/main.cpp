@@ -1,6 +1,7 @@
 
+#include "benchmark.hpp"
 #include "cuda_utils.hpp"
-#include "../test/run_all_tests.hpp"
+#include "../test/all_tests.hpp"
 #include <boost/ut.hpp>
 #include <cstdlib>
 #include <format>
@@ -29,8 +30,6 @@ void initialize_cuda(const int selected_device)
 			selected_device == device ? " (Selected)" : "");
 	}
 
-	cout << endl;
-
 	if (selected_device < 0 || selected_device >= deviceCount)
 	{
 		throw std::out_of_range(format("selected device {} does not exist", selected_device));
@@ -45,10 +44,18 @@ int main(int argc, char* argv[])
 	{
 		initialize_cuda(0);
 
+		cout << endl;
+
 		if (const int r = run_all_tests(); r != EXIT_SUCCESS)
 		{
 			return r;
 		}
+
+		cout << endl;
+
+		run_benchmark();
+
+		cout << endl;
 
 		return EXIT_SUCCESS;
 	}

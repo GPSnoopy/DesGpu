@@ -16,7 +16,11 @@ So I decided to shamelessly rip out all the relevant source code from John The R
 
 TODO C++ + CUDA + CMake
 
-TODO Unit tests
+TODO C++20 + format + source_location
+
+TODO Unit tests Boost.UT
+
+TODO Salt indices / templates / precomp instead of OpenCL runtime C code compilation
 
 TODO Constants within kernel instead of uploaded at runtime to constant memory
 
@@ -27,6 +31,8 @@ TODO Zeroing
 TODO Swapping
 
 TODO Forcing constants and loop unrolling
+
+TODO Shared memory + bank conflicts
 
 ## TODO
 
