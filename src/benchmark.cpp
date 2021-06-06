@@ -6,8 +6,25 @@
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <locale>
 
-using namespace std::chrono;
+namespace
+{
+	class timer final
+	{
+	public:
+		timer() : start_(std::chrono::steady_clock::now()) { }
+		void restart() { start_ = std::chrono::steady_clock::now(); }
+		
+		[[nodiscard]] double elapsed_seconds() const
+		{
+			return duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - start_).count();
+		}
+
+	private:
+		std::chrono::time_point<std::chrono::steady_clock> start_;
+	};
+}
 
 void run_benchmark()
 {
@@ -21,16 +38,18 @@ void run_benchmark()
 	};
 
 	const size_t number_of_keys = 100'000'000;
+	const size_t mega_keys = number_of_keys / 1'000'000;
 	const uint32_t salt = salt_to_int("01");
 	const size_t threads_per_block = 64;
 	const size_t global_work_size = div_up(number_of_keys, threads_per_block * 32) * threads_per_block;
+	const std::locale locale("en_GB");
 
-	std::cout << "- Number of keys: " << number_of_keys << std::endl;
+	std::cout << std::format(locale, "- Number of keys: {:L}", number_of_keys) << std::endl;
 	
 	auto keys = keys_buffer(global_work_size);
 	auto encrypter = des_encrypter(global_work_size);
 
-	auto timer = steady_clock::now();
+	timer timer;
 	{
 		// Start with the key 'Password' (such that we can at least check the first hash),
 		// then increment and initialise the following keys from there.
@@ -62,48 +81,41 @@ void run_benchmark()
 				}
 			}
 		}
+
+		const auto elapsed = timer.elapsed_seconds();
+		std::cout << std::format(locale, "- Generated keys in {:.3f}s ({:.0Lf}Mk/s)\n", elapsed, mega_keys / elapsed);
 	}
 
-	auto elapsed = duration_cast<duration<double>>(steady_clock::now() - timer).count();
-	std::cout << std::format("- Generated keys in {:.3f}s ({:.0f}Mk/s)",
-		elapsed,
-		number_of_keys / (elapsed * 1000'000))
-		<< std::endl;
-
-	timer = steady_clock::now();
+	timer.restart();
 	{
 		keys.copy_keys_to_device();
 
-		elapsed = duration_cast<duration<double>>(steady_clock::now() - timer).count();
-		std::cout << std::format("- Copied keys in {:.3f}s ({:.0f}Mk/s)",
-			elapsed,
-			number_of_keys / (elapsed * 1000'000))
-			<< std::endl;
+		const auto elapsed = timer.elapsed_seconds();
+		std::cout << std::format(locale, "- Copied keys in {:.3f}s ({:.0Lf}Mk/s)\n", elapsed, mega_keys / elapsed);
 	}
 
-	timer = steady_clock::now();
+	timer.restart();
 	{
 		keys.bitsplit_keys_on_device(threads_per_block);
 		CudaCheck(cudaDeviceSynchronize());
-	}
-	
-	elapsed = duration_cast<duration<double>>(steady_clock::now() - timer).count();
-	std::cout << std::format("- Bit-splitted keys in {:.3f}s ({:.0f}Mk/s)",
-		elapsed,
-		number_of_keys / (elapsed * 1000'000))
-		<< std::endl;
 
-	timer = steady_clock::now();
-	{
-		encrypter.encrypt_keys_on_device(keys, salt, threads_per_block);
-		CudaCheck(cudaDeviceSynchronize());
+		const auto elapsed = timer.elapsed_seconds();
+		std::cout << std::format(locale, "- Bit-splitted keys in {:.3f}s ({:.0Lf}Mk/s)\n", elapsed, mega_keys / elapsed);
 	}
+
+	timer.restart();
+	{
+		uint32_t t;
 	
-	elapsed = duration_cast<duration<double>>(steady_clock::now() - timer).count();
-	std::cout << std::format("- Computed hashes in {:.3f}s ({:.0f}Mh/s)",
-		elapsed,
-		number_of_keys / (elapsed * 1000'000))
-		<< std::endl;
+		for (t = 0; timer.elapsed_seconds() < 1.0; ++t)
+		{
+			encrypter.encrypt_keys_on_device(keys, salt, threads_per_block);
+			CudaCheck(cudaDeviceSynchronize());
+		}
+
+		const auto elapsed = timer.elapsed_seconds();
+		std::cout << std::format(locale, "- Computed hashes {} times in {:.3f}s ({:.0Lf}Mh/s)\n", t, elapsed, t * mega_keys / elapsed);
+	}
 
 	// Verirfy the first hash to make sure we haven't done a silly mistake
 	{

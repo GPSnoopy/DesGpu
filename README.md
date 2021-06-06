@@ -24,6 +24,18 @@ TODO Salt indices / templates / precomp instead of OpenCL runtime C code compila
 
 TODO Constants within kernel instead of uploaded at runtime to constant memory
 
+### Initial Performance
+
+With all unit tests passing, it was high time to implement a quick benchmark, compile in _Release_ mode and find out where we stand using a GeForce RTX 3090 FE.
+
+```
+- Computed hashes 16 times in 1.015s (1,576Mh/s)
+```
+
+This is good news. The performance is identical to John The Ripper's OpenCL implementation under Linux, and this is what we expected (any strong deviation would have meant the CUDA port was not faithful to the JtR OpenCL implementation).
+
+**TODO put JtR exact test numbers**
+
 ## Kernel Code Changes
 
 TODO Zeroing
