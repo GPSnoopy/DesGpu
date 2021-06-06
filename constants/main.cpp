@@ -8,14 +8,14 @@ int main(int argc, char* argv[])
 	try
 	{
 		const auto salt_indices = create_salt_indices();
-		
-		print_salt_indices(std::cout, salt_indices, 0);
-		print_salt_indices(std::cout, salt_indices, 1);
-		print_salt_indices(std::cout, salt_indices, 194);
+
+		save_salt_dispatch();
+		save_salt_instances_header();
+		save_salt_instances(salt_indices);
 
 		const auto key_map = create_key_map();
 
-		print_key_map(std::cout, key_map);
+		save_key_map(key_map);
 
 		return EXIT_SUCCESS;
 	}

@@ -6,11 +6,9 @@
  * Based on Solar Designer implementation of DES_bs_b.c in jtr-v1.7.9
  */
 
-#include "des_kernel.h"
 #include "des_kernel_key_map.h"
 #include "des_kernel_sboxes.h"
 #include "logical_ops.h"
-#include "assert.h"
 
 #if WORK_GROUP_SIZE > 0
 #define y48(p, q) vxorf(B[p], s_des_bs_key[q + s_key_offset])
@@ -236,6 +234,3 @@ next:
 	goto start;
 #endif
 }
-
-#include "des_kernel_salt_instances.h"
-#include "des_kernel_salt_dispatch.h"

@@ -1,5 +1,7 @@
 #include "salt_indices.hpp"
 #include <array>
+#include <format>
+#include <fstream>
 #include <memory>
 
 namespace
@@ -69,7 +71,48 @@ std::vector<uint32_t> create_salt_indices()
 	return salt_indices;
 }
 
-void print_salt_indices(std::ostream& out, const std::vector<uint32_t>& salt_indices, const int32_t salt)
+void save_salt_dispatch()
+{
+	std::ofstream out("des_kernel_salt_dispatch.cu", std::ios::trunc);
+	out << "#include \"des_kernel_salt_dispatch.h\"\n";
+	out << "#include \"des_kernel_salt_instances.h\"\n";
+	out << "#include <stdexcept>\n";
+	out << std::endl;
+
+	out << "void des_25_encrypt(size_t num_blocks, size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
+	out << "{\n";
+	out << "\tswitch (salt)\n";
+	out << "\t{\n";
+
+	for (size_t salt = 0; salt < 4096; ++salt)
+	{
+		out << "\tcase " << salt << ":\n";
+		out << "\t\tdes_25_encrypt_salt" << salt << "<<<num_blocks, threads_per_block>>>(unchecked_hashes, bitsplitted_keys);\n";
+		out << "\t\tbreak;\n\n";
+	}
+
+	out << "\tdefault:\n";
+	out << "\t\tthrow std::out_of_range(\"salt value is too big\");\n";
+	out << "\t}\n";
+	out << "}\n";
+	out << std::endl;
+}
+
+void save_salt_instances_header()
+{
+	std::ofstream out("des_kernel_salt_instances.h", std::ios::trunc);
+	out << "#pragma once\n\n";
+	out << "#include \"types.hpp\"\n\n";
+
+	for (size_t salt = 0; salt < 4096; ++salt)
+	{
+		out << "__global__ void des_25_encrypt_salt" << salt << "(vtype* unchecked_hashes, const bs_vector* bitsplitted_keys);\n";
+	}
+
+	out << std::endl;
+}
+
+void save_salt_instances(const std::vector<uint32_t>& salt_indices)
 {
 	const std::array<uint32_t, 48> indices =
 	{
@@ -79,23 +122,33 @@ void print_salt_indices(std::ostream& out, const std::vector<uint32_t>& salt_ind
 		72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83
 	};
 
-	out << "__device__ void DES_bs_25_salt" << salt << "(uint32_t * key_map, DES_bs_vector * des_bs_key, vtype * unchecked_hashes)\n";
-	out << "{\n";
-	out << "\tDES_bs_25<";
-
-	bool first = true;
-	for (const uint32_t indice : indices)
+	for (size_t salt = 0; salt < 4096;)
 	{
-		if (!first)
+		std::ofstream out(std::format("des_kernel_salt_instances_{}.cu", salt), std::ios::trunc);
+		out << "#include \"des_kernel_encrypt.h\"\n";
+		out << "#include \"des_kernel_salt_instances.h\"\n\n";
+
+		for (size_t salt_inc = 0; salt_inc < 128; ++salt_inc, ++salt)
 		{
-			out << ", ";
+			out << "__global__ void des_25_encrypt_salt" << salt << "(vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
+			out << "{\n";
+			out << "\tdes_25_encrypt<";
+
+			for (bool first = true; const uint32_t indice : indices)
+			{
+				if (!first)
+				{
+					out << ", ";
+				}
+
+				out << salt_indices[salt * 96 + indice];
+				first = false;
+			}
+
+			out << ">(unchecked_hashes, bitsplitted_keys);\n";
+			out << "}\n\n";
 		}
 
-		out << salt_indices[salt * 96 + indice];
-		first = false;
+		out << std::endl;
 	}
-
-	out << ">(key_map, des_bs_key, unchecked_hashes);\n";
-	out << "}\n";
-	out << std::endl;
 }

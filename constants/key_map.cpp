@@ -1,5 +1,6 @@
 #include "key_map.hpp"
 #include <array>
+#include <fstream>
 
 namespace
 {
@@ -67,9 +68,13 @@ std::vector<uint32_t> create_key_map()
 	return key_map;
 }
 
-void print_key_map(std::ostream& out, const std::vector<uint32_t>& key_map)
+void save_key_map(const std::vector<uint32_t>& key_map)
 {
-	out << "static const uint32_t key_map[0x300] =\n";
+	std::ofstream out("des_kernel_key_map.h", std::ios::trunc);
+
+	out << "#pragma once\n\n";
+	out << "#include \"types.hpp\"\n\n";
+	out << "__device__ static const uint32_t key_map[0x300] =\n";
 	out << "{\n";
 
 	for (size_t i = 0; i < key_map.size(); )
@@ -84,5 +89,5 @@ void print_key_map(std::ostream& out, const std::vector<uint32_t>& key_map)
 		out << "\n";
 	}
 	
-	out << "};" << std::endl;
+	out << "};\n" << std::endl;
 }

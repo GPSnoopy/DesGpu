@@ -22,6 +22,8 @@
  * The underlying mathematical formulas are NOT copyrighted.
  */
 
+#pragma once
+
 #include "types.hpp"
 #include "logical_ops.h"
 
