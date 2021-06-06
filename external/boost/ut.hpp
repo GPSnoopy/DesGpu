@@ -920,7 +920,14 @@ class printer {
   auto& operator<<(T&& t) {
     *this << '{';
     auto first = true;
+    auto count = 0;
     for (const auto& arg : t) {
+      // Only print the first few elements, no point in spamming the console.
+      if (count++ > 16)
+      {
+      	*this << ", ...";
+        break;
+      }
       *this << (first ? "" : ", ") << arg;
       first = false;
     }
