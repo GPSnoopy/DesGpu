@@ -12,6 +12,8 @@ Out of the box, using the prebuilt Windows binaries, OpenCL acceleration did not
 
 Therefore I decided to shamelessly rip out all the relevant source code from John The Ripper, focusing purely on DES hashing, and port it to CUDA. JtR source code has been worked on by many clever people, all in low-level C, and with little to no comments. Not the easiest place to start. [http://www.darkside.com.au/bitslice/] is a great place to start to understand the implementation and optimisations used by JtR.
 
+This was an interesting journey, which I thought was worth sharing.
+
 ## Initial Implementation
 
 TODO C++ + CUDA + CMake
@@ -34,7 +36,15 @@ With all unit tests passing, it was high time to implement a quick benchmark, co
 
 This is good news. The performance is identical to John The Ripper's OpenCL implementation under Linux, and this is what we expected (any strong deviation would have meant the CUDA port was not faithful to the JtR OpenCL implementation).
 
-**TODO put JtR exact test numbers**
+```
+gpsnoopy@Ryzen:~/Development/thirdparty/john/run$ ./john --test --format=descrypt-opencl 
+Device 1: NVIDIA GeForce RTX 3090
+Benchmarking: descrypt-opencl, traditional crypt(3) [DES OpenCL/mask accel]... LWS=64 GWS=65536 Note: Building per-salt kernels. This takes e.g. 2 hours for 4096 salts.
+DONE
+Warning: "Many salts" test limited: 16/256
+Many salts:	1565M c/s real, 1448M c/s virtual, Dev#1 util: 100%
+Only one salt:	1533M c/s real, 1525M c/s virtual, Dev#1 util: 99%
+```
 
 ## Kernel Code Changes
 
@@ -296,6 +306,34 @@ Since the SASS assembly optimised away most global memory accesses, I didn't thi
 
 TODO Shared memory + bank conflicts
 
+## John The Ripper Full Unroll
+
+It turns out that JtR was ahead of me all along. Feeling really stupid suddenly. JtR has a manually unrolled version with hard-coded constants called `DES_bs_kernel_h.cl`, no _key_map_ runtime table or compile time array. But for some reason, the unrolled kernel was not being picked up and instead JtR was falling back to the next best thing.
+
+```
+#define USE_FULL_UNROLL                 (amd_gcn(device_info[gpu_id]) || nvidia_sm_5x(device_info[gpu_id]))
+```
+
+It probably is meant to be `nvidia_sm_5x_or_higher`. There is no reason why this should be Maxwell only but not be picked up on Pascal, Volta, Turing or Ampere GPUs. Forcing this define to `1` completely changes JtR performance as one would expect, much closer to our CUDA port.
+
+```
+gpsnoopy@Ryzen:~/Development/thirdparty/john/run$ ./john --test --format=descrypt-opencl 
+Device 1: NVIDIA GeForce RTX 3090
+Benchmarking: descrypt-opencl, traditional crypt(3) [DES OpenCL/mask accel]... LWS=64 GWS=131072 Note: Building per-salt kernels. This takes e.g. 2 hours for 4096 salts.
+DONE
+Warning: "Many salts" test limited: 13/256
+Many salts:	2631M c/s real, 2428M c/s virtual, Dev#1 util: 100%
+Only one salt:	2531M c/s real, 2531M c/s virtual, Dev#1 util: 99%
+```
+
+It also defaults to using shared memory rather than global memory.
+
+TODO comment back on her experiment with shared memory
+
 ## TODO
 
-https://hashcat.net/hashcat/
+TODO https://hashcat.net/hashcat/
+
+## Conclusion
+
+TODO
