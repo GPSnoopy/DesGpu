@@ -1,6 +1,6 @@
 #include "des_encrypter.hpp"
 #include "cuda_utils.hpp"
-#include "des_kernel_salt_dispatch.h"
+#include "des_kernel_salt_dispatch.hpp"
 #include "keys_buffer.hpp"
 #include <array>
 #include <format>

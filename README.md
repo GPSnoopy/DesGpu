@@ -2,15 +2,15 @@
 
 ## Introduction
 
-My mild facination with DES ([Data Encryption Standard](https://en.wikipedia.org/wiki/Data_Encryption_Standard)) started around 2002 in College. The system used by students was built around a [HP-UX](https://en.wikipedia.org/wiki/HP-UX) server (it was already fairly obsolete at that point, featuring 64MB of RAM, when PC desktops sported Pentium 4s and 1GB of RAM).
+My interest in DES ([Data Encryption Standard](https://en.wikipedia.org/wiki/Data_Encryption_Standard)) started around 2002 in College. The system used by students was built around a [HP-UX](https://en.wikipedia.org/wiki/HP-UX) server (which was already fairly obsolete at that point; featuring 64MB of RAM, when PC desktops sported Pentium 4s and 1GB of RAM).
 
-As you probably guessed it, this UNIX system was using DES for password hashing. As I'm no DES expert, I quickly gave up after a few days of dabbling in [John The Ripper](https://www.openwall.com/john/) with my shiny new Pentium 4 2.6Ghz.
+The question that every student asked: how long would it take to go through all possible hashes on a modern computer. In particular when using vectorised integeer instructions such as MMX or SSE2. As I was no DES expert, I quickly gave up after a few days of exploring [John The Ripper](https://www.openwall.com/john/) with my shiny new Pentium 4 2.6Ghz.
 
-Almost 20 years later, I started to wonder if CPUs and GPUs had become fast enough to exhaustively search to all possible passwords in a reasonable amount of time while still using off-the-shelves hardware. I naturely looked back at John The Ripper and found out it supported DES GPU acceleration using OpenCL.
+Almost 20 years later, I started to wonder whether CPUs and GPUs had become fast enough to exhaustively search to all possible combinations in a reasonable amount of time while still using off-the-shelves hardware. I naturely looked back at JtR as a starting point and found out it supported DES GPU acceleration using OpenCL.
 
-Out of the box, using the prebuilt Windows binaries, OpenCL acceleration did not work on my NVIDIA GPU on Windows 10 (it claimed it couldn't find any OpenCL devices). It did however work when building from source on Ubuntu 20.04. Building from source on Windows requires [Cygwin](https://www.cygwin.com/), which in my books in a big no-go since I really wanted to build the source in Visual Studio such that I could run, debug, and iterate through the whole algorithm within the IDE. And even then, it wasn't obvious if building using Cygwin would have resulted in an OpenCL-enabled executable (which could explain why the prebuilt one didn't work).
+Out of the box, using the prebuilt Windows binaries, OpenCL acceleration did not work on my NVIDIA GPU on Windows 10 (it claimed it couldn't find any OpenCL devices). It did however run when building from source on Ubuntu 20.04. Building from source on Windows requires [Cygwin](https://www.cygwin.com/), which in my books is a big no-go since I really wanted to build the source in Visual Studio such that the whole algorithm could be run, debugged, and iterated through the IDE. And even then, it wasn't obvious if building using Cygwin would have resulted in an OpenCL-enabled executable (which could explain why the prebuilt one didn't work).
 
-So I decided to shamelessly rip out all the relevant source code from John The Ripper, focusing purely on DES password hashing, porting it to CUDA. The source code has been worked on by many clever people, all in low-level C, and with little to no comments ([http://www.darkside.com.au/bitslice/] is a great place to start to understand the implementation used by John The Ripper).
+Therefore I decided to shamelessly rip out all the relevant source code from John The Ripper, focusing purely on DES hashing, and port it to CUDA. JtR source code has been worked on by many clever people, all in low-level C, and with little to no comments. Not the easiest place to start. [http://www.darkside.com.au/bitslice/] is a great place to start to understand the implementation and optimisations used by JtR.
 
 ## Initial Implementation
 
@@ -246,6 +246,53 @@ The immediate downside is that the _Release_ executable file has gone from 90MB 
 ```
 - Computed hashes 28 times in 1.027s (2,725Mh/s)
 ```
+
+Looking at the [PTX](https://en.wikipedia.org/wiki/Parallel_Thread_Execution) code confirms that the global _key_map_ is never accessed anymore (although it's still present). Another surprising reveal is that most of the memory accesses are quickly cached and kept in registers rather than reloaded. Here is a snippet from the generated PTX code.
+
+```c
+	/* ... */
+	// begin inline asm
+	lop3.b32 %r1278, %r1299, %r1210, %r1222, 0x3D;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1282, %r1293, %r1274, %r1278, 0xA6;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1286, %r1307, %r1270, %r1282, 0xA6;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1290, %r1291, %r1292, %r1293, 0xC6;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1294, %r1222, %r1250, %r1290, 0xDB;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1298, %r1299, %r1242, %r1266, 0xB9;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1302, %r1270, %r1290, %r1298, 0x9B;
+	// end inline asm
+	// begin inline asm
+	lop3.b32 %r1306, %r1307, %r1294, %r1302, 0xA6;
+	// end inline asm
+	xor.b32  	%r12200, %r12663, %r1234;
+	xor.b32  	%r12201, %r12671, %r1306;
+	xor.b32  	%r12202, %r12657, %r1286;
+	xor.b32  	%r12203, %r12681, %r1258;
+	xor.b32  	%r1347, %r4, %r12175;
+	xor.b32  	%r1359, %r12133, %r12124;
+	xor.b32  	%r1343, %r12119, %r12155;
+	xor.b32  	%r1360, %r12122, %r12186;
+	xor.b32  	%r1329, %r3, %r12135;
+	xor.b32  	%r1367, %r12118, %r12115;
+	/* ...*/
+```
+
+Looking at the actual SASS instructions sent to the GPU reveals that most of the kernels has been transformed into one giant blob of `LOP3.LUT` instructions, with the number of registers per CUDA thread (totalling 255) being the limitation to higher CUDA occupancy.
+
+### Shared Memory
+
+Since the SASS assembly optimised away most global memory accesses, I didn't think that the use of shared memory would help. Still worth a try, maybe it can somehow help to alleviate the register pressure.
 
 TODO Shared memory + bank conflicts
 

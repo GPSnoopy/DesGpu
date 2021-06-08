@@ -61,7 +61,7 @@ template <
 	uint32_t index72, uint32_t index73, uint32_t index74, uint32_t index75, uint32_t index76, uint32_t index77,
 	uint32_t index78, uint32_t index79, uint32_t index80, uint32_t index81, uint32_t index82, uint32_t index83
 >
-__device__ void des_25_encrypt(
+__global__ void des_25_encrypt(
 	vtype* const unchecked_hashes,
 	const bs_vector* const bitsplitted_keys
 )

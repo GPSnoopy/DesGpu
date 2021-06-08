@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 
 project(DesGpu LANGUAGES CXX)
 
+option(DESGPU_COMPILE_ALL_SALTS "If false, then only compile the salts needed to run the unit tests and benchmark. This significantly speeds up compilation and reduces the executable size" OFF)
+
 set(CMAKE_DEBUG_POSTFIX d)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -35,6 +37,10 @@ if (UNIX)
 	add_definitions(-DUNIX)
 	add_compile_options("-Wall")
 endif ()
+
+if (DESGPU_COMPILE_ALL_SALTS)
+	add_definitions(-DDESGPU_COMPILE_ALL_SALTS)
+endif()
 
 set(MAIN_PROJECT "DesGpu")
 add_subdirectory(constants)

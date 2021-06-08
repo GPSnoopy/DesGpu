@@ -57,6 +57,11 @@ namespace
 		prev = salt;
 		memcpy(&processed_salts[salt * 96], &processed_salts[4096 * 96], 96 * sizeof(uint32_t));
 	}
+
+	bool is_test_salt_value(const size_t salt)
+	{
+		return salt == 194 || salt == 2339;
+	}
 }
 
 std::vector<uint32_t> create_salt_indices()
@@ -73,26 +78,41 @@ std::vector<uint32_t> create_salt_indices()
 
 void save_salt_dispatch()
 {
-	std::ofstream out("des_kernel_salt_dispatch.cu", std::ios::trunc);
-	out << "#include \"des_kernel_salt_dispatch.h\"\n";
+	std::ofstream out("des_kernel_salt_dispatch.cpp", std::ios::trunc);
+	out << "#include \"des_kernel_salt_dispatch.hpp\"\n";
 	out << "#include \"des_kernel_salt_instances.h\"\n";
+	out << "#include <format>\n";
 	out << "#include <stdexcept>\n";
 	out << std::endl;
 
-	out << "void des_25_encrypt(size_t num_blocks, size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
+	out << "void des_25_encrypt(const size_t num_blocks, const size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
 	out << "{\n";
 	out << "\tswitch (salt)\n";
 	out << "\t{\n";
-
+	out << "#ifdef DESGPU_COMPILE_ALL_SALTS\n";
+	
 	for (size_t salt = 0; salt < 4096; ++salt)
 	{
+		const bool is_test_salt = is_test_salt_value(salt);
+		
+		if (is_test_salt)
+		{
+			out << "#endif // DESGPU_COMPILE_ALL_SALTS\n\n";
+		}
+
 		out << "\tcase " << salt << ":\n";
-		out << "\t\tdes_25_encrypt_salt" << salt << "<<<num_blocks, threads_per_block>>>(unchecked_hashes, bitsplitted_keys);\n";
+		out << "\t\tdes_25_encrypt_salt" << salt << "(num_blocks, threads_per_block, unchecked_hashes, bitsplitted_keys);\n";
 		out << "\t\tbreak;\n\n";
+
+		if (is_test_salt)
+		{
+			out << "#ifdef DESGPU_COMPILE_ALL_SALTS\n";
+		}
 	}
 
+	out << "#endif // DESGPU_COMPILE_ALL_SALTS\n\n";
 	out << "\tdefault:\n";
-	out << "\t\tthrow std::out_of_range(\"salt value is too big\");\n";
+	out << "\t\tthrow std::out_of_range(std::format(\"salt value is too big ({})\", salt));\n";
 	out << "\t}\n";
 	out << "}\n";
 	out << std::endl;
@@ -103,12 +123,26 @@ void save_salt_instances_header()
 	std::ofstream out("des_kernel_salt_instances.h", std::ios::trunc);
 	out << "#pragma once\n\n";
 	out << "#include \"types.hpp\"\n\n";
-
+	out << "#ifdef DESGPU_COMPILE_ALL_SALTS\n";
+	
 	for (size_t salt = 0; salt < 4096; ++salt)
 	{
-		out << "__global__ void des_25_encrypt_salt" << salt << "(vtype* unchecked_hashes, const bs_vector* bitsplitted_keys);\n";
+		const bool is_test_salt = is_test_salt_value(salt);
+
+		if (is_test_salt)
+		{
+			out << "#endif // DESGPU_COMPILE_ALL_SALTS\n";
+		}
+		
+		out << "void des_25_encrypt_salt" << salt << "(size_t num_blocks, size_t threads_per_block, vtype* unchecked_hashes, const bs_vector* bitsplitted_keys);\n";
+
+		if (is_test_salt)
+		{
+			out << "#ifdef DESGPU_COMPILE_ALL_SALTS\n";
+		}
 	}
 
+	out << "#endif // DESGPU_COMPILE_ALL_SALTS\n\n";
 	out << std::endl;
 }
 
@@ -127,11 +161,19 @@ void save_salt_instances(const std::vector<uint32_t>& salt_indices)
 		std::ofstream out(std::format("des_kernel_salt_instances_{}.cu", salt), std::ios::trunc);
 		out << "#include \"des_kernel_encrypt.h\"\n";
 		out << "#include \"des_kernel_salt_instances.h\"\n\n";
+		out << "#ifdef DESGPU_COMPILE_ALL_SALTS\n\n";
 
 		// There are too many salt instances of the encrypt function to compile in decent time. Split them into multiple files.
 		for (size_t salt_inc = 0; salt_inc < 128; ++salt_inc, ++salt)
 		{
-			out << "__global__ void des_25_encrypt_salt" << salt << "(vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
+			const bool is_test_salt = is_test_salt_value(salt);
+
+			if (is_test_salt)
+			{
+				out << "#endif // DESGPU_COMPILE_ALL_SALTS\n\n";
+			}
+			
+			out << "void des_25_encrypt_salt" << salt << "(const size_t num_blocks, const size_t threads_per_block, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
 			out << "{\n";
 			out << "\tdes_25_encrypt<";
 
@@ -146,10 +188,17 @@ void save_salt_instances(const std::vector<uint32_t>& salt_indices)
 				first = false;
 			}
 
-			out << ">(unchecked_hashes, bitsplitted_keys);\n";
+			out << "><<<num_blocks, threads_per_block>>>(unchecked_hashes, bitsplitted_keys);\n";
 			out << "}\n\n";
+
+
+			if (is_test_salt)
+			{
+				out << "#ifdef DESGPU_COMPILE_ALL_SALTS\n\n";
+			}
 		}
 
+		out << "#endif // DESGPU_COMPILE_ALL_SALTS\n\n";
 		out << std::endl;
 	}
 }
