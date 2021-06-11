@@ -1,6 +1,6 @@
 # DES Password Hashing in CUDA
 
-**TL;DR** Reinventing the wheel in CUDA, learning that more clever people have been there before me, as well as a few more things along the way.
+**TL;DR** Reinventing the wheel in CUDA, learning that more clever people have been there before me, along with a few other lessons on the way.
 
 ## Introduction
 
