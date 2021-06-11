@@ -1,5 +1,7 @@
 # DES Password Hashing in CUDA
 
+**TL;DR** Reinventing the wheel in CUDA, learning that more clever people have been there before me, as well as a few more things along the way.
+
 ## Introduction
 
 My interest in DES ([Data Encryption Standard](https://en.wikipedia.org/wiki/Data_Encryption_Standard)) started around 2002 in College. The system used by students was built around a [HP-UX](https://en.wikipedia.org/wiki/HP-UX) server (which was already fairly obsolete at that point; featuring 64MB of RAM, when PC desktops sported Pentium 4s and 1GB of RAM).
