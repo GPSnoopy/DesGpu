@@ -109,7 +109,7 @@ void run_benchmark()
 	
 		for (t = 0; timer.elapsed_seconds() < 1.0; ++t)
 		{
-			encrypter.encrypt_keys_on_device(keys, salt, threads_per_block);
+			encrypter.encrypt_keys_on_device(keys, salt);
 			CudaCheck(cudaDeviceSynchronize());
 		}
 

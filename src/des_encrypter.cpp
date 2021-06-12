@@ -69,8 +69,9 @@ std::vector<vtype> des_encrypter::get_hashes_from_device() const
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void des_encrypter::encrypt_keys_on_device(const keys_buffer& keys, const uint32_t salt, const size_t threads_per_block)
+void des_encrypter::encrypt_keys_on_device(const keys_buffer& keys, const uint32_t salt)
 {
+	const size_t threads_per_block = 64; // hard-coded due to the use of static shared memory
 	const size_t num_blocks = global_work_size() / threads_per_block;
 
 	if (global_work_size() % threads_per_block != 0)

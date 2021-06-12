@@ -10,8 +10,9 @@
 #include "des_kernel_sboxes.h"
 #include "logical_ops.h"
 
-#if WORK_GROUP_SIZE > 0
-#define z(p, q) vxorf(B[p], s_des_bs_key[key_map[q + k] + s_key_offset])
+#define USE_SHARED_MEMORY 1
+#ifdef USE_SHARED_MEMORY
+#define z(p, q) vxorf(B[p], shared_mem_ptr[key_map[q + k] * number_of_threads])
 #else
 #define z(p, q) vxorf(B[p], bitsplitted_keys[section + key_map[q + k] * gws])
 #endif
@@ -65,18 +66,19 @@ __global__ void des_25_encrypt(
 	vtype* const unchecked_hashes,
 	const bs_vector* const bitsplitted_keys
 )
-{
+{	
 	const int section = blockIdx.x * blockDim.x + threadIdx.x;
 	const int gws = gridDim.x * blockDim.x;
 
-#if WORK_GROUP_SIZE > 0
-	__local DES_bs_vector s_des_bs_key[56 * WORK_GROUP_SIZE];
-	int lid = get_local_id(0);
-	int s_key_offset = 56 * lid;
-	for (i = 0; i < 56; i++)
-		s_des_bs_key[lid * 56 + i] = bitsplitted_keys[section + i * gws];
+#ifdef USE_SHARED_MEMORY
+	const uint32_t number_of_threads = 64;
+	__shared__ vtype shared_mem[56 * number_of_threads];
+	vtype* const shared_mem_ptr = shared_mem + threadIdx.x;
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+	for (uint32_t i = 0; i < 56; ++i)
+	{
+		shared_mem_ptr[i * number_of_threads] = bitsplitted_keys[section + i * gws];
+	}
 #endif
 
 	vtype B[64] = { 0 };

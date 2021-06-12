@@ -300,13 +300,7 @@ Looking at the [PTX](https://en.wikipedia.org/wiki/Parallel_Thread_Execution) co
 	/* ...*/
 ```
 
-Looking at the actual SASS instructions sent to the GPU reveals that most of the kernels has been transformed into one giant blob of `LOP3.LUT` instructions, with the number of registers per CUDA thread (totalling 255) being the limitation to higher CUDA occupancy.
-
-### Shared Memory
-
-Since the SASS assembly optimised away most global memory accesses, I didn't think that the use of shared memory would help. Still worth a try, maybe it can somehow help to alleviate the register pressure.
-
-TODO Shared memory + bank conflicts
+Looking at the actual SASS instructions sent to the GPU reveals that most of the kernels has been transformed into one giant blob of `LOP3.LUT` instructions, with the number of registers per CUDA thread (totalling 255, which according the CUDA documentation is the upper limit for a single thread) being the limitation to higher CUDA occupancy.
 
 ## John The Ripper Full Unroll
 
@@ -330,7 +324,54 @@ Only one salt:	2531M c/s real, 2531M c/s virtual, Dev#1 util: 99%
 
 It also defaults to using shared memory rather than global memory.
 
-TODO comment back on her experiment with shared memory
+### Shared Memory
+
+Since the SASS assembly optimised away most global memory accesses, I didn't think that the use of shared memory would help. Still worth a try, maybe it can somehow help to alleviate the register pressure.
+
+**Old**
+```opencl
+#define z(p, q) vxorf(B[p], s_des_bs_key[key_map[q + k] + s_key_offset])
+
+/*...*/
+
+#if WORK_GROUP_SIZE > 0
+	__local DES_bs_vector s_des_bs_key[56 * WORK_GROUP_SIZE];
+	int lid = get_local_id(0);
+	int s_key_offset = 56 * lid;
+	for (i = 0; i < 56; i++)
+		s_des_bs_key[lid * 56 + i] = bitsplitted_keys[section + i * gws];
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+#endif
+```
+
+**New**
+```cuda
+#define z(p, q) vxorf(B[p], shared_mem_ptr[key_map[q + k] * number_of_threads])
+
+/*...*/
+
+#ifdef USE_SHARED_MEMORY
+	const uint32_t number_of_threads = 64;
+	__shared__ vtype shared_mem[56 * number_of_threads];
+	vtype* const shared_mem_ptr = shared_mem + threadIdx.x;
+
+	for (uint32_t i = 0; i < 56; ++i)
+	{
+		shared_mem_ptr[i * number_of_threads] = bitsplitted_keys[section + i * gws];
+	}
+#endif
+```
+
+IMHO the original OpenCL code had the layout of the shared memory the wrong way around, as it would likely cause bank conflicts. Instead we want the CUDA thread warp neatly accessing the shared memory in a contiguous manner. Organising the shared memory layout this way also means that we do not need a memory barrier between threads.
+
+Since we use so many CUDA registers per thread, what we really want out of the shared memory is to be used as excess register space and try to increase the GPU occupancy. Using the CUDA kernel with 64 threads per block, we had a maximum occupancy of 4 blocks per SM when not using the shared memory due to each thread using 255 registers. When turning on the shared memory, the number of registers drops to 168 and the maximum occupancy increases to 6 blocks per SM. The CUDA compiler seems to be intelligent enough to take advantage of the extra space we have given it. My wild guess: since shared memory is cheaper to access than global memory, the compiler isn't under pressure to keep so much data cached directly in the registers. Either way, we'll take it.
+
+```
+- Computed hashes 28 times in 1.008s (2,779Mh/s)
+```
+
+Unfortunately the increased occupancy does not translate into any significant additional performance. But we'll take it nonetheless.
 
 ## TODO
 

@@ -17,8 +17,8 @@ void register_des_encrypter_tests()
 		const auto input_key = "Password";
 		const std::string input_salt = "01";
 		const std::string expected_hash = "01Q2aNxdM.j6k";
-		const size_t global_work_size = 1;
-		const size_t threads_per_block = 1;
+		const size_t global_work_size = 64;
+		const size_t threads_per_block = 64;
 
 		const uint32_t salt = salt_to_int(input_salt);
 		auto keys = keys_buffer(global_work_size);
@@ -28,7 +28,7 @@ void register_des_encrypter_tests()
 		keys.copy_keys_to_device();
 		keys.bitsplit_keys_on_device(threads_per_block);
 
-		encrypter.encrypt_keys_on_device(keys, salt, threads_per_block);
+		encrypter.encrypt_keys_on_device(keys, salt);
 
 		const auto hashes = encrypter.get_hashes_from_device();
 
@@ -36,7 +36,7 @@ void register_des_encrypter_tests()
 
 		for (size_t bit = 0; bit < 64; ++bit)
 		{
-			hash |= static_cast<uint64_t>(hashes[bit] & 0x01) << bit;
+			hash |= static_cast<uint64_t>(hashes[bit * global_work_size] & 0x01) << bit;
 		}
 
 		const auto fp = des_encrypter::final_permutation(hash);
@@ -103,7 +103,7 @@ void register_des_encrypter_tests()
 			keys.bitsplit_keys_on_device(threads_per_block);
 
 			// Run encrypter and retrieve the hashes.
-			encrypter.encrypt_keys_on_device(keys, salt, threads_per_block);
+			encrypter.encrypt_keys_on_device(keys, salt);
 
 			const auto hashes = encrypter.get_hashes_from_device();
 
