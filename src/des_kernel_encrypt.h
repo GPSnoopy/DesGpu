@@ -64,7 +64,7 @@ template <
 >
 __global__ void des_25_encrypt(
 	vtype* const unchecked_hashes,
-	const bs_vector* const bitsplitted_keys
+	const vtype* const bitsplitted_keys
 )
 {	
 	const int section = blockIdx.x * blockDim.x + threadIdx.x;

@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-typedef int32_t WORD;
-typedef int32_t bs_vector;
 typedef uint32_t vtype;
 
 // Container of DSE keys after they have been split character-wise into structures-of-arrays.
@@ -11,6 +9,6 @@ typedef uint32_t vtype;
 // There is one instance per CUDA thread.
 union keys_transfer
 {
-	uint8_t c[8][8][sizeof(bs_vector)];
-	bs_vector v[8][8];
+	uint8_t c[8][8][sizeof(vtype)];
+	vtype v[8][8];
 };

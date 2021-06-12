@@ -21,7 +21,7 @@ keys_buffer::keys_buffer(const size_t global_work_size) :
 	}
 
 	CudaCheck(cudaMalloc(&keys_transfers_device_, global_work_size * sizeof(keys_transfer)));
-	CudaCheck(cudaMalloc(&bitsplitted_keys_device_, global_work_size * sizeof(bs_vector) * 56));
+	CudaCheck(cudaMalloc(&bitsplitted_keys_device_, global_work_size * sizeof(vtype) * 56));
 }
 
 keys_buffer::~keys_buffer()
@@ -33,15 +33,15 @@ keys_buffer::~keys_buffer()
 	keys_transfers_device_ = nullptr;
 }
 
-std::vector<bs_vector> keys_buffer::get_bitsplitted_keys_from_device() const
+std::vector<vtype> keys_buffer::get_bitsplitted_keys_from_device() const
 {
-	std::vector<bs_vector> bitsplitted_keys(global_work_size() * 56);
+	std::vector<vtype> bitsplitted_keys(global_work_size() * 56);
 
 	CudaCheck(
 		cudaMemcpy(
 			bitsplitted_keys.data(),
 			bitsplitted_keys_device(),
-			bitsplitted_keys.size() * sizeof(bs_vector),
+			bitsplitted_keys.size() * sizeof(vtype),
 			cudaMemcpyDeviceToHost));
 
 	return bitsplitted_keys;
@@ -51,7 +51,7 @@ void keys_buffer::set_key(const uint8_t* const key, const uint32_t index)
 {
 	const uint32_t sector = index >> log_depth;
 	const uint32_t key_index = index & (depth - 1);
-	const size_t stride = sizeof(bs_vector) * 8;
+	const size_t stride = sizeof(vtype) * 8;
 
 	uint8_t* const dst = keys_views_[sector].pxkeys[key_index];
 	uint32_t flag = key[0];

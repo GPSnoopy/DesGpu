@@ -85,7 +85,7 @@ void save_salt_dispatch()
 	out << "#include <stdexcept>\n";
 	out << std::endl;
 
-	out << "void des_25_encrypt(const size_t num_blocks, const size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
+	out << "void des_25_encrypt(const size_t num_blocks, const size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const vtype* const bitsplitted_keys)\n";
 	out << "{\n";
 	out << "\tswitch (salt)\n";
 	out << "\t{\n";
@@ -134,7 +134,7 @@ void save_salt_instances_header()
 			out << "#endif // DESGPU_COMPILE_ALL_SALTS\n";
 		}
 		
-		out << "void des_25_encrypt_salt" << salt << "(size_t num_blocks, size_t threads_per_block, vtype* unchecked_hashes, const bs_vector* bitsplitted_keys);\n";
+		out << "void des_25_encrypt_salt" << salt << "(size_t num_blocks, size_t threads_per_block, vtype* unchecked_hashes, const vtype* bitsplitted_keys);\n";
 
 		if (is_test_salt)
 		{
@@ -173,7 +173,7 @@ void save_salt_instances(const std::vector<uint32_t>& salt_indices)
 				out << "#endif // DESGPU_COMPILE_ALL_SALTS\n\n";
 			}
 			
-			out << "void des_25_encrypt_salt" << salt << "(const size_t num_blocks, const size_t threads_per_block, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)\n";
+			out << "void des_25_encrypt_salt" << salt << "(const size_t num_blocks, const size_t threads_per_block, vtype* const unchecked_hashes, const vtype* const bitsplitted_keys)\n";
 			out << "{\n";
 			out << "\tdes_25_encrypt<";
 

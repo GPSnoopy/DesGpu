@@ -371,7 +371,11 @@ Since we use so many CUDA registers per thread, what we really want out of the s
 - Computed hashes 28 times in 1.008s (2,779Mh/s)
 ```
 
-Unfortunately the increased occupancy does not translate into any significant additional performance. But we'll take it nonetheless.
+Unfortunately the increased occupancy does not translate into any significant additional performance, likely because the GPU integer execution units are the main bottleneck. But we'll take it nonetheless.
+
+## Cleanup
+
+JtR OpenCL code mixes signed ints and unsigned its (i.e. `bs_vector` and `vtype`), likely due to the code base growing organically, with contributions and optimisations coming from different sources. I've moved everything to `vtype`.
 
 ## TODO
 

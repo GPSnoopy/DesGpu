@@ -3,7 +3,7 @@
 #include <format>
 #include <stdexcept>
 
-void des_25_encrypt(const size_t num_blocks, const size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const bs_vector* const bitsplitted_keys)
+void des_25_encrypt(const size_t num_blocks, const size_t threads_per_block, const uint32_t salt, vtype* const unchecked_hashes, const vtype* const bitsplitted_keys)
 {
 	switch (salt)
 	{

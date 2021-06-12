@@ -19,8 +19,8 @@ public:
 	[[nodiscard]] size_t max_number_of_keys() const { return global_work_size_ * depth; }
 	[[nodiscard]] const std::vector<keys_transfer>& keys_transfers() const { return keys_transfers_; }
 	[[nodiscard]] const keys_transfer* keys_transfers_device() const { return keys_transfers_device_; }
-	[[nodiscard]] const bs_vector* bitsplitted_keys_device() const { return bitsplitted_keys_device_; }
-	[[nodiscard]] std::vector<bs_vector> get_bitsplitted_keys_from_device() const;
+	[[nodiscard]] const vtype* bitsplitted_keys_device() const { return bitsplitted_keys_device_; }
+	[[nodiscard]] std::vector<vtype> get_bitsplitted_keys_from_device() const;
 	
 	void set_key(const uint8_t* key, uint32_t index);
 	void set_key(const char* const key, const uint32_t index) { set_key(reinterpret_cast<const uint8_t*>(key), index); }
@@ -46,5 +46,5 @@ private:
 	std::vector<keys_view> keys_views_;
 
 	keys_transfer* keys_transfers_device_{};
-	bs_vector* bitsplitted_keys_device_{};
+	vtype* bitsplitted_keys_device_{};
 };

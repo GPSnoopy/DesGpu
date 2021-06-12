@@ -172,7 +172,7 @@
 // The bit-splitting CUDA kernel takes 64-bit keys from keys_transfer and turns them into 56-bit keys (i.e. ASCII printable subset).
 // The keys are split 1-bit per column (56 columns in total).
 __global__ void bitsplit_keys(
-	/*__global*/ bs_vector* bitsplitted_keys,
+	/*__global*/ vtype* bitsplitted_keys,
 	/*__global */ const keys_transfer* keys_transfers)
 //#if USE_CONST_CACHED_INT_KEYS
 //				   constant
@@ -190,12 +190,12 @@ __global__ void bitsplit_keys(
 	const int section = blockIdx.x * blockDim.x + threadIdx.x; // get_global_id(0);
 	const int gws = gridDim.x * blockDim.x; // get_global_size(0);
 	
-	bs_vector *kp = &bitsplitted_keys[section];
+	vtype *kp = &bitsplitted_keys[section];
 
 	for (int ic = 0; ic < 8; ++ic) 
 	{
 		// TODO: this seems pretty inefficient CUDA read memory access
-		const bs_vector *vp = &keys_transfers[section].v[ic][0];
+		const vtype *vp = &keys_transfers[section].v[ic][0];
 		
 		LOAD_V
 		FINALIZE_NEXT_KEY_BIT_0g
@@ -208,7 +208,7 @@ __global__ void bitsplit_keys(
 	}
 }
 
-void bitsplit_keys(size_t num_blocks, size_t threads_per_block, bs_vector* bitsplitted_keys, const keys_transfer* keys_transfers)
+void bitsplit_keys(size_t num_blocks, size_t threads_per_block, vtype* bitsplitted_keys, const keys_transfer* keys_transfers)
 {
 	bitsplit_keys<<<num_blocks, threads_per_block>>>(bitsplitted_keys, keys_transfers);
 }

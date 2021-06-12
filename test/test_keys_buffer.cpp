@@ -292,7 +292,7 @@ void register_keys_buffer_tests()
 			keys.set_key(key_string, key_index++);
 		}
 
-		std::vector<bs_vector> expected(keys.global_work_size() * 56);
+		std::vector<vtype> expected(keys.global_work_size() * 56);
 
 		for (uint32_t key_index = 0; const auto key_string : key_strings)
 		{
