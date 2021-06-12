@@ -10,12 +10,7 @@
 #include "des_kernel_sboxes.h"
 #include "logical_ops.h"
 
-#define USE_SHARED_MEMORY 1
-#ifdef USE_SHARED_MEMORY
 #define z(p, q) vxorf(B[p], shared_mem_ptr[key_map[q + k] * number_of_threads])
-#else
-#define z(p, q) vxorf(B[p], bitsplitted_keys[section + key_map[q + k] * gws])
-#endif
 
 #define H1_s()\
 	s1(z(index0, 0), z(index1, 1), z(index2, 2), z(index3, 3), z(index4, 4), z(index5, 5), B, 40, 48, 54, 62);\
@@ -70,7 +65,7 @@ __global__ void des_25_encrypt(
 	const int section = blockIdx.x * blockDim.x + threadIdx.x;
 	const int gws = gridDim.x * blockDim.x;
 
-#ifdef USE_SHARED_MEMORY
+	// Use shared memory to try and reduce register pressure.
 	const uint32_t number_of_threads = 64;
 	__shared__ vtype shared_mem[56 * number_of_threads];
 	vtype* const shared_mem_ptr = shared_mem + threadIdx.x;
@@ -79,14 +74,13 @@ __global__ void des_25_encrypt(
 	{
 		shared_mem_ptr[i * number_of_threads] = bitsplitted_keys[section + i * gws];
 	}
-#endif
 
 	vtype B[64] = { 0 };
 
 	#pragma unroll 1 // Do not unroll
 	for (int iteration = 0; iteration < 25; ++iteration) 
 	{
-		#pragma unroll
+		#pragma unroll // Unroll everything such that k, p, q and key_map can all be folded at compiled time.
 		for (uint32_t k = 0; k < 768; k += 96)
 		{
 			H1_s();

@@ -9,8 +9,6 @@
 #include "keys_kernel.h"
 #include "logical_ops.h"
 
-#define ITER_COUNT 1
-
 #define mask01 0x01010101
 #define mask02 0x02020202
 #define mask04 0x04040404
@@ -68,7 +66,7 @@
 	vand_shl_or(va, v6, m, 6); 			\
 	vand_shl_or(vb, v7, m, 7); 			\
 	vor(kp[0], va, vb);					\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_1g { 		\
@@ -82,7 +80,7 @@
 	vand_shl_or(va, v6, m, 5); 			\
 	vand_shl_or(vb, v7, m, 6); 			\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_2g { 		\
@@ -96,7 +94,7 @@
 	vand_shl_or(va, v6, m, 4); 			\
 	vand_shl_or(vb, v7, m, 5); 			\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_3g { 		\
@@ -110,7 +108,7 @@
 	vand_shl_or(va, v6, m, 3); 			\
 	vand_shl_or(vb, v7, m, 4); 			\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_4g { 		\
@@ -124,7 +122,7 @@
 	vand_shl_or(va, v6, m, 2); 			\
 	vand_shl_or(vb, v7, m, 3); 			\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_5g { 		\
@@ -138,7 +136,7 @@
 	vand_shl1_or(va, v6, m); 			\
 	vand_shl_or(vb, v7, m, 2); 			\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_6g { 		\
@@ -152,7 +150,7 @@
 	vand_or(va, v6, m); 				\
 	vand_shl1_or(vb, v7, m); 			\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT); 			\
+	kp += gws; 							\
 }
 
 #define FINALIZE_NEXT_KEY_BIT_7g { 		\
@@ -166,35 +164,23 @@
 	vand_shr_or(va, v6, m, 1); 			\
 	vand_or(vb, v7, m); 				\
 	vor(kp[0], va, vb); 				\
-	kp += (gws * ITER_COUNT);			\
+	kp += gws;							\
 }
 
 // The bit-splitting CUDA kernel takes 64-bit keys from keys_transfer and turns them into 56-bit keys (i.e. ASCII printable subset).
 // The keys are split 1-bit per column (56 columns in total).
 __global__ void bitsplit_keys(
-	/*__global*/ vtype* bitsplitted_keys,
-	/*__global */ const keys_transfer* keys_transfers)
-//#if USE_CONST_CACHED_INT_KEYS
-//				   constant
-//#else
-//				   /*__global*/
-//#endif
-				   //unsigned int *des_int_keys
-//#if !defined(__OS_X__) && USE_CONST_CACHED_INT_KEYS && gpu_amd(DEVICE_INFO)
-//				   __attribute__((max_constant_size((ACTIVE_PLACEHOLDER * 32 * ITER_COUNT))))
-//#endif
-	//			   , 
-	//__global unsigned int *des_int_key_loc) 
+	vtype* bitsplitted_keys,
+	const keys_transfer* keys_transfers)
 {
 
-	const int section = blockIdx.x * blockDim.x + threadIdx.x; // get_global_id(0);
-	const int gws = gridDim.x * blockDim.x; // get_global_size(0);
+	const int section = blockIdx.x * blockDim.x + threadIdx.x;
+	const int gws = gridDim.x * blockDim.x;
 	
 	vtype *kp = &bitsplitted_keys[section];
 
 	for (int ic = 0; ic < 8; ++ic) 
 	{
-		// TODO: this seems pretty inefficient CUDA read memory access
 		const vtype *vp = &keys_transfers[section].v[ic][0];
 		
 		LOAD_V

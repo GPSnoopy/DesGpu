@@ -375,7 +375,7 @@ Unfortunately the increased occupancy does not translate into any significant ad
 
 ## Cleanup
 
-JtR OpenCL code mixes signed ints and unsigned its (i.e. `bs_vector` and `vtype`), likely due to the code base growing organically, with contributions and optimisations coming from different sources. I've moved everything to `vtype`.
+JtR OpenCL code mixes signed ints and unsigned its (i.e. `bs_vector` and `vtype`), likely due to the code base growing organically, with contributions and optimisations coming from different sources. I've moved everything to `vtype`. This change does not impact performance.
 
 ## TODO
 
