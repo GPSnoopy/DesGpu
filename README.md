@@ -6,9 +6,9 @@
 
 My interest in DES ([Data Encryption Standard](https://en.wikipedia.org/wiki/Data_Encryption_Standard)) started around 2002 in College. The system used by students was built around a [HP-UX](https://en.wikipedia.org/wiki/HP-UX) server (which was already fairly obsolete at that point; featuring 64MB of RAM, when PC desktops sported Pentium 4s and 1GB of RAM).
 
-The question that every student asked: how long would it take to go through all possible hashes on a modern computer. In particular when using vectorised integeer instructions such as MMX or SSE2. As I was no DES expert, I quickly gave up after a few days of exploring [John The Ripper](https://www.openwall.com/john/) with my shiny new Pentium 4 2.6Ghz.
+The question that every student asked: how long would it take to go through all possible hashes on a modern computer. In particular when using vectorised integer instructions such as MMX or SSE2. As I was no DES expert, I quickly gave up after a few days of exploring [John The Ripper](https://www.openwall.com/john/) with my shiny new Pentium 4 2.6Ghz.
 
-Almost 20 years later, I started to wonder whether CPUs and GPUs had become fast enough to exhaustively search to all possible combinations in a reasonable amount of time while still using off-the-shelves hardware. I naturely looked back at JtR as a starting point and found out it supported DES GPU acceleration using OpenCL.
+Almost 20 years later, I started to wonder whether CPUs and GPUs had become fast enough to exhaustively search to all possible combinations in a reasonable amount of time while still using off-the-shelves hardware. I naturally looked back at JtR as a starting point and found out it supported DES GPU acceleration using OpenCL.
 
 Out of the box, using the prebuilt Windows binaries, OpenCL acceleration did not work on my NVIDIA GPU on Windows 10 (it claimed it couldn't find any OpenCL devices). It did however run when building from source on Ubuntu 20.04. Building from source on Windows requires [Cygwin](https://www.cygwin.com/), which in my books is a big no-go since I really wanted to build the source in Visual Studio such that the whole algorithm could be run, debugged, and iterated through the IDE. And even then, it wasn't obvious if building using Cygwin would have resulted in an OpenCL-enabled executable (which could explain why the prebuilt one didn't work).
 
@@ -18,17 +18,13 @@ This was an interesting journey, which I thought was worth sharing.
 
 ## Initial Implementation
 
-TODO C++ + CUDA + CMake
+Before even copying any code, I wanted to take the opportunity to do the build system the "proper way" using an up-to-date version of CMake natively supporting CUDA as a language. Next I wanted to try out C++20 and some of its new features such as `<format>` and `<source_location>`. Amusingly enough, Visual Studio 2019 16.10 was released literally 6 days before I started this project, adding support for those. Perfect timing! The downside being that it doesn't look like Clang and GCC will fully support those in the immediate future; though the desire to try them out is too strong.
 
-TODO C++20 + format + source_location
+Some form of unit testing was also needed. Only testing the round-tripping of a hash would have not been good enough, a more modular of testing was necessary in order to reverse engineer what the algorithms were doing and refactor each piece separately while ensuring the results were still correct. I searched for a header-file-only unit test library and found [Boost.UT](https://github.com/boost-ext/ut). It is not perfect, but a few patches on the local copy got it working the way I wanted.
 
-TODO Unit tests Boost.UT
+JtR OpenCL kernels for DES are compiled at runtime, with the constants required for each [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) value injected via preprocessor macros when the OpenCL drivers are compiling the kernels. The trade-off here being that initial run of the application may take several minutes depending on how many salt values are needed, but it does leave the executable fairly small. For the CUDA implementation, I decided to use C++ templates to inject the salt constants and compile all salt values ahead of time. Even on an AMD Ryzen 5950X (16 cores), parallelising salt instances across multiple files, the compilation still took several minutes because of this (although later on I added an option to only compile the variants needed for the tests, massively speeding up compilation).
 
-TODO Salt indices / templates / precomp instead of OpenCL runtime C code compilation
-
-TODO Constants within kernel instead of uploaded at runtime to constant memory
-
-### Initial Performance
+## Initial Performance
 
 With all unit tests passing, it was high time to implement a quick benchmark, compile in _Release_ mode and find out where we stand using a GeForce RTX 3090 FE.
 
@@ -302,7 +298,7 @@ Looking at the [PTX](https://en.wikipedia.org/wiki/Parallel_Thread_Execution) co
 
 Looking at the actual SASS instructions sent to the GPU reveals that most of the kernels has been transformed into one giant blob of `LOP3.LUT` instructions, with the number of registers per CUDA thread (totalling 255, which according the CUDA documentation is the upper limit for a single thread) being the limitation to higher CUDA occupancy.
 
-## John The Ripper Full Unroll
+### John The Ripper Full Unroll
 
 It turns out that JtR was ahead of me all along. Feeling really stupid suddenly. JtR has a manually unrolled version with hard-coded constants called `DES_bs_kernel_h.cl`, no _key_map_ runtime table or compile time array. But for some reason, the unrolled kernel was not being picked up and instead JtR was falling back to the next best thing.
 
@@ -373,14 +369,12 @@ Since we use so many CUDA registers per thread, what we really want out of the s
 
 Unfortunately the increased occupancy does not translate into any significant additional performance, likely because the GPU integer execution units are the main bottleneck. But we'll take it nonetheless.
 
-## Cleanup
+### Cleanup
 
 JtR OpenCL code mixes signed ints and unsigned its (i.e. `bs_vector` and `vtype`), likely due to the code base growing organically, with contributions and optimisations coming from different sources. I've moved everything to `vtype`. This change does not impact performance.
 
-## TODO
-
-TODO https://hashcat.net/hashcat/
-
 ## Conclusion
 
-TODO
+According to Google, there are 95 printable ASCII characters. Looking at 8 letters passwords, that gives us 6,634,204,312,890,625 (6.63 quadrillion) possibilities. At 2,8 billions hash per second, it would take 2,369,359 seconds to check all possibilities, roughly 27 days. Not too bad. Still on the slow side for a user with a regular desktop computer (albeit equipped with an RTX 3090) to check all possible combinations, but doable if one takes advantage of cloud services such as AWS. Looking forward to future GPUs.
+
+I also found out about https://hashcat.net/hashcat/ while doing this work, and got performance similar to JtR.
